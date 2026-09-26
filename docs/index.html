@@ -12,10 +12,13 @@
 <body>
   <main class="layout">
     <section class="input">
-      <h1>PA Reader</h1>
-      <p class="hint">วางโน้ตลงชื่อประจำวัน แล้วกด Update</p>
-      <textarea id="note" spellcheck="false" rows="18"></textarea>
-      <button id="render" type="button">Update</button>
+      <header class="intro">
+        <h1>PA Reader</h1>
+      </header>
+      <textarea id="note" spellcheck="false" rows="18" placeholder="วางโน้ตลงชื่อประจำวัน"></textarea>
+      <div class="actions">
+        <button id="view" type="button" class="secondary">View: Court</button>
+      </div>
     </section>
     <section class="output">
       <div id="card" class="card" aria-live="polite"></div>

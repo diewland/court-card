@@ -9,8 +9,8 @@
   --court: #3f8f5f;
   --court-line: #ffffff;
   --track: #e6ebe7;
-  --reserve: #b3372a;
-  --reserve-soft: #fbe5e1;
+  --reserve-court: #b3372a;
+  --reserve-ball: #ffc9c0;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -24,8 +24,8 @@
     --court: #2d6b47;
     --court-line: #dfe9e2;
     --track: #252c28;
-    --reserve: #f08a7c;
-    --reserve-soft: #3a2320;
+    --reserve-court: #7d2c24;
+    --reserve-ball: #f08a7c;
   }
 }
 :root[data-theme="dark"] {
@@ -39,8 +39,8 @@
   --court: #2d6b47;
   --court-line: #dfe9e2;
   --track: #252c28;
-  --reserve: #f08a7c;
-  --reserve-soft: #3a2320;
+  --reserve-court: #7d2c24;
+  --reserve-ball: #f08a7c;
 }
 
 * { box-sizing: border-box; }
@@ -62,8 +62,18 @@ body {
 @media (max-width: 800px) {
   .layout { grid-template-columns: minmax(0, 1fr); }
 }
+/* Desktop: the intro gets its own row in the left column, so the card's top lines up with the textarea.
+   The card's extra height goes into the last 1fr row, keeping the View button under the textarea. */
+@media (min-width: 801px) {
+  .layout { grid-template-rows: auto auto auto 1fr; row-gap: 0; }
+  .input { display: contents; }
+  .intro { grid-area: 1 / 1; }
+  #note { grid-area: 2 / 1; }
+  .actions { grid-area: 3 / 1; }
+  .output { grid-column: 2; grid-row: 2 / -1; }
+}
 h1 { margin: 0; font-size: 1.25rem; }
-.hint { margin: 4px 0 12px; color: var(--muted); font-size: .9rem; }
+.intro { margin-bottom: 12px; }
 textarea {
   width: 100%;
   font: inherit;
@@ -76,8 +86,8 @@ textarea {
   color: var(--fg);
   resize: vertical;
 }
+textarea::placeholder { color: var(--muted); }
 button {
-  margin-top: 12px;
   font: inherit;
   font-weight: 600;
   padding: 10px 20px;
@@ -87,6 +97,8 @@ button {
   color: #fff;
   cursor: pointer;
 }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+button.secondary { background: var(--surface); color: var(--fg); border: 1px solid var(--line); }
 
 /* Card */
 .card {
@@ -128,14 +140,15 @@ button {
   text-align: center;
 }
 .grid td.off { background: var(--track); color: var(--muted); }
-.grid tr.over td { padding: 8px 4px; font-size: .85rem; font-weight: 600; }
-.grid tr.over td.has { background: var(--reserve-soft); color: var(--reserve); }
+.grid td.over-cell { background: var(--reserve-court); }
 .spots { display: block; width: 68px; height: 46px; margin: 0 auto; }
 .spot.filled { fill: var(--ball); stroke: var(--court-line); stroke-width: 2; }
 .spot.open { fill: none; stroke: var(--court-line); stroke-width: 2; stroke-dasharray: 3 3; opacity: .85; }
 .legend { margin: 12px 0 0; font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .dot { width: 20px; height: 20px; background: var(--court); border-radius: 5px; }
-.legend .dot:nth-of-type(2) { margin-left: 8px; }
+.legend .dot:not(:first-child) { margin-left: 8px; }
+.dot.reserve { background: var(--reserve-court); }
+.spots.reserve .spot.filled, .dot.reserve .spot.filled { fill: var(--reserve-ball); }
 
 .unknown { margin-top: 12px; font-size: .8rem; color: var(--muted); }
 .unknown ul { margin: 4px 0 0; padding-left: 18px; }

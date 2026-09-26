@@ -1,19 +1,25 @@
 # PA Reader
 
-Paste the daily tennis sign-up note from the group chat and get a reservation graphic. The graphic is a grid with one column per hour and one row per court. Each cell holds 6 circles, one per member spot:
+Paste the daily tennis sign-up note from the group chat and get a reservation graphic. The graphic is a grid of courts × hours:
 
-- ● solid: reserved
-- ○ blank: available
-- **สำรอง** ("reserve") row: members left over in an hour after every booked court is full
+- **Court cell:** 6 circles, one per member spot. A solid circle is reserved and a blank circle is available. A grey `–` means the court isn't booked that hour.
+- **สำรอง ("reserve") cell:** 4 red circles, one filled per member left over in that hour after every booked court is full. The display is capped at 4.
+
+The card's header is `ลงชื่อสมาชิกเล่น <day>` ("member sign-up <day>"), and the subtitle shows when the card was rendered, in Thai with the Buddhist year.
+
+The card updates as you type. The **View** button switches between two layouts, and the page remembers the last one used:
+
+- **Court** (the default): courts across the top, one row per hour.
+- **Time**: hours across the top, one row per court.
 
 Everything runs in the browser, with no backend and no build step.
 
-**Live:** https://diewland.github.io/pa-render/
+**Live:** https://diewland.github.io/pa-reader/
 
 ## Note format
 
 ```
-ลงชื่อสมาชิกเล่น วันพฤหัส        ← title; the day name is shown on the card
+ลงชื่อสมาชิกเล่น วันพฤหัส        ← title; the day name goes in the card header
 1 Alice   17.00-20.00
 2 Bob18.00-20.00                 ← a space before the time is optional
 3 Carol 18-20                    ← hours only is fine
@@ -44,7 +50,7 @@ python3 -m http.server -d docs 8000
 # open http://localhost:8000
 ```
 
-Run the tests (Node, no dependencies). Each sample note in `tests/notes/` is rendered and compared with its expected grid:
+Run the tests (Node, no dependencies). Each sample note in `tests/notes/` is rendered in both views and compared with its expected grid:
 
 ```sh
 node tests/run.js                              # all cases
