@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-pa-render turns a tennis group's daily sign-up note, pasted from chat in Thai, into a reservation graphic. The graphic is a grid with one column per hour and one row per court, and each cell shows 6 circles (solid means reserved, blank means available). Everything runs in the browser. There is no backend, build step, package manager or dependencies.
+pa-reader turns a tennis group's daily sign-up note, pasted from chat in Thai, into a reservation graphic. The graphic is a grid with one column per hour and one row per court, and each cell shows 6 circles (solid means reserved, blank means available). Everything runs in the browser. There is no backend, build step, package manager or dependencies.
 
 `docs/` is the website root, served by GitHub Pages from `master` → `/docs`; `.nojekyll` turns Jekyll off. All the site code lives in `docs/`: `index.html`, `app.js` and `style.css`.
 

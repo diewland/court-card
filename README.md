@@ -1,4 +1,4 @@
-# PA Render
+# PA Reader
 
 Paste the daily tennis sign-up note from the group chat and get a reservation graphic. The graphic is a grid with one column per hour and one row per court. Each cell holds 6 circles, one per member spot:
 
