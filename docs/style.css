@@ -1,0 +1,149 @@
+:root {
+  --bg: #f4f6f3;
+  --surface: #ffffff;
+  --fg: #1c2320;
+  --muted: #6b766f;
+  --line: #e2e7e3;
+  --accent: #2f7d4f;
+  --ball: #c9e14a;
+  --court: #3f8f5f;
+  --court-line: #ffffff;
+  --track: #e6ebe7;
+  --reserve: #b3372a;
+  --reserve-soft: #fbe5e1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111513;
+    --surface: #1a201c;
+    --fg: #e8ede9;
+    --muted: #93a098;
+    --line: #2b332e;
+    --accent: #5cc285;
+    --ball: #b5cc3a;
+    --court: #2d6b47;
+    --court-line: #dfe9e2;
+    --track: #252c28;
+    --reserve: #f08a7c;
+    --reserve-soft: #3a2320;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111513;
+  --surface: #1a201c;
+  --fg: #e8ede9;
+  --muted: #93a098;
+  --line: #2b332e;
+  --accent: #5cc285;
+  --ball: #b5cc3a;
+  --court: #2d6b47;
+  --court-line: #dfe9e2;
+  --track: #252c28;
+  --reserve: #f08a7c;
+  --reserve-soft: #3a2320;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Noto Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.layout {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  align-items: start;
+}
+@media (max-width: 800px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+}
+h1 { margin: 0; font-size: 1.25rem; }
+.hint { margin: 4px 0 12px; color: var(--muted); font-size: .9rem; }
+textarea {
+  width: 100%;
+  font: inherit;
+  font-size: .95rem;
+  line-height: 1.5;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--fg);
+  resize: vertical;
+}
+button {
+  margin-top: 12px;
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Card */
+.card {
+  width: max-content;
+  min-width: min(100%, 360px);
+  max-width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+}
+.card-head { display: flex; align-items: center; gap: 12px; }
+.ball {
+  width: 36px; height: 36px; flex: none;
+  border-radius: 50%;
+  background: var(--ball);
+  position: relative; overflow: hidden;
+}
+.ball::before, .ball::after {
+  content: ""; position: absolute; width: 36px; height: 36px;
+  border: 2px solid rgba(255,255,255,.85); border-radius: 50%;
+}
+.ball::before { left: -24px; }
+.ball::after { right: -24px; }
+.day { margin: 0; font-size: 1.4rem; font-weight: 700; line-height: 1.2; }
+.title { margin: 0; color: var(--muted); font-size: .85rem; }
+.summary { margin: 14px 0 0; font-size: .9rem; color: var(--muted); }
+.summary b { color: var(--fg); }
+
+.grid-wrap { margin-top: 16px; overflow-x: auto; }
+.grid { border-collapse: separate; border-spacing: 4px; }
+.grid th { font-size: .8rem; font-weight: 600; color: var(--muted); padding: 2px 4px; }
+.grid thead th { text-align: center; }
+.grid tbody th { text-align: left; white-space: nowrap; color: var(--fg); }
+.grid td {
+  background: var(--court);
+  border-radius: 8px;
+  padding: 6px;
+  text-align: center;
+}
+.grid td.off { background: var(--track); color: var(--muted); }
+.grid tr.over td { padding: 8px 4px; font-size: .85rem; font-weight: 600; }
+.grid tr.over td.has { background: var(--reserve-soft); color: var(--reserve); }
+.spots { display: block; width: 68px; height: 46px; margin: 0 auto; }
+.spot.filled { fill: var(--ball); stroke: var(--court-line); stroke-width: 2; }
+.spot.open { fill: none; stroke: var(--court-line); stroke-width: 2; stroke-dasharray: 3 3; opacity: .85; }
+.legend { margin: 12px 0 0; font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.dot { width: 20px; height: 20px; background: var(--court); border-radius: 5px; }
+.legend .dot:nth-of-type(2) { margin-left: 8px; }
+
+.unknown { margin-top: 12px; font-size: .8rem; color: var(--muted); }
+.unknown ul { margin: 4px 0 0; padding-left: 18px; }
+.empty { color: var(--muted); margin: 0; }
+
+@media (max-width: 560px) {
+  .card { padding: 16px 12px; }
+  .grid { border-spacing: 3px; }
+  .grid td { padding: 4px; }
+  .spots { width: 52px; height: 35px; }
+}
