@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-pa-reader turns a tennis group's daily sign-up note, pasted from chat in Thai, into a reservation graphic. The graphic is a grid of courts × hours. Each court cell shows 6 circles (solid means reserved, blank means available), and a red สำรอง ("reserve") line shows who is left over. Everything runs in the browser. There is no backend, build step, package manager or dependencies.
+pa-reader turns a tennis group's daily sign-up note, pasted from chat in Thai, into a reservation graphic. The graphic is a grid of courts × hours. Each court cell shows 6 circles (solid means reserved, blank means available), and a red สำรอง ("reserve") line shows who is left over. Everything runs in the browser. There is no backend, build step or package manager. The only third-party code is html-to-image, loaded from jsDelivr in `index.html` and used only by the Share button.
 
 `docs/` is the website root, served by GitHub Pages from `master` → `/docs`; `.nojekyll` turns Jekyll off. All the site code lives in `docs/`: `index.html`, `app.js` and `style.css`.
 
@@ -25,6 +25,8 @@ pa-reader turns a tennis group's daily sign-up note, pasted from chat in Thai, i
 `app.js` is a single ES5 IIFE and follows one pipeline: `parseNote(text)` → `buildGrid(data)` → `renderCard(data, view)` returns an HTML string that is set as `#card.innerHTML`. It re-renders on textarea input (debounced 250ms) and when the View button is toggled.
 
 The View button toggles `renderCard(data, view)` between two layouts of the same grid. `"time"` has hours as columns, courts as rows and สำรอง as the last row. `"court"` (the default) turns it sideways, with courts as columns, hours as rows and สำรอง as the last column. The choice is kept in `localStorage` (`pa-view`). The test runner checks both views for every case.
+
+The Share button captures `#card` with `htmlToImage.toBlob` (pixel ratio 2). During the capture it adds `.capture` to the card, which lifts `max-width` and the `.grid-wrap` scroll so a wide grid isn't cut off. It also copies each circle's computed `fill`/`stroke` into inline styles, because html-to-image drops CSS paint on SVG shapes. The Google Fonts `<link>` needs `crossorigin="anonymous"` so html-to-image can read and embed Noto Sans Thai. If `navigator.canShare` accepts files, the PNG goes to the share sheet; otherwise it downloads (and it also downloads if sharing is refused).
 
 **`parseNote`** reads the note line by line and returns `{title, day, players[], openSlots[], courts[], unknown[]}`. Players are `{slot, name, ranges[]}`. Courts are flat `{court, start, end}` entries, one per booking, sorted by court number. Times are `{h, m}`. Rules are checked in this order:
 - Blank lines, dividers (`————`) and any line containing `สมาชิกเต็ม` ("members full") are skipped, as are comment lines starting with `**`.

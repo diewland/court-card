@@ -200,6 +200,7 @@
   var card = document.getElementById("card");
   var unknown = document.getElementById("unknown");
   var toggle = document.getElementById("view");
+  var save = document.getElementById("save");
   var VIEWS = { time: "Time", court: "Court" };
   var view = "court";
   var timer;
@@ -209,6 +210,7 @@
     var data = parseNote(note.value);
     toggle.textContent = "View: " + VIEWS[view];
     card.innerHTML = renderCard(data, view);
+    save.disabled = !data.courts.length;
     unknown.innerHTML = renderUnknown(data.unknown);
   }
 
@@ -216,6 +218,69 @@
     view = view === "time" ? "court" : "time";
     try { localStorage.setItem("pa-view", view); } catch (e) {}
     update();
+  });
+
+  function pngName() {
+    var d = new Date();
+    function p(n) { return String(n).padStart(2, "0"); }
+    return "pa-reader-" + d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+      "-" + p(d.getHours()) + p(d.getMinutes()) + ".png";
+  }
+
+  // Phones get the share sheet (straight to chat); desktops download the file.
+  // If the browser refuses to share (e.g. the click is too long ago), download instead.
+  function deliver(blob) {
+    var file = new File([blob], pngName(), { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      return navigator.share({ files: [file] }).catch(function (e) {
+        if (e.name === "AbortError") return;
+        if (e.name === "NotAllowedError") return download(file);
+        throw e;
+      });
+    }
+    download(file);
+  }
+
+  function download(file) {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(file);
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+
+  // html-to-image drops CSS paint on SVG shapes, so inline the computed values while capturing.
+  var PAINT = ["fill", "stroke", "stroke-width", "stroke-dasharray", "opacity"];
+  function inlinePaint(on) {
+    [].forEach.call(card.querySelectorAll("circle"), function (c) {
+      var cs = on && getComputedStyle(c);
+      PAINT.forEach(function (k) {
+        if (on) c.style.setProperty(k, cs.getPropertyValue(k));
+        else c.style.removeProperty(k);
+      });
+    });
+  }
+
+  save.addEventListener("click", function () {
+    var label = save.textContent;
+    save.disabled = true;
+    save.textContent = "กำลังสร้าง…";
+    function done(err) {
+      card.classList.remove("capture");
+      inlinePaint(false);
+      save.textContent = label;
+      save.disabled = false;
+      if (err) { console.error(err); alert("บันทึกรูปไม่สำเร็จ"); }
+    }
+    if (!window.htmlToImage) return done(new Error("html-to-image not loaded"));
+    card.classList.add("capture");
+    inlinePaint(true);
+    document.fonts.ready
+      .then(function () { return htmlToImage.toBlob(card, { pixelRatio: 2 }); })
+      .then(function (blob) { card.classList.remove("capture"); inlinePaint(false); return deliver(blob); })
+      .then(function () { done(); }, done);
   });
   note.addEventListener("input", function () {
     clearTimeout(timer);

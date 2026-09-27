@@ -98,6 +98,8 @@ button {
   cursor: pointer;
 }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+button:disabled { opacity: .5; cursor: default; }
+#save { margin-left: auto; }
 button.secondary { background: var(--surface); color: var(--fg); border: 1px solid var(--line); }
 
 /* Card */
@@ -129,6 +131,9 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 .summary b { color: var(--fg); }
 
 .grid-wrap { margin-top: 16px; overflow-x: auto; }
+/* While saving as PNG, show the whole grid instead of a scrolled slice. */
+.card.capture { max-width: none; }
+.card.capture .grid-wrap { overflow: visible; }
 .grid { border-collapse: separate; border-spacing: 4px; }
 .grid th { font-size: .8rem; font-weight: 600; color: var(--muted); padding: 2px 4px; }
 .grid thead th { text-align: center; }
