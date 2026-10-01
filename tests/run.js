@@ -46,6 +46,10 @@ var CASES = {
   "tuesday-reserve-cap": {
     day: "วันอังคาร", players: 14, hours: ["18:00"],
     rows: { 2: [6] }, reserve: [4]
+  },
+  "thursday-cancelled-slot": {
+    day: "วันพฤหัส", players: 13, hours: ["18:00", "19:00"],
+    rows: { 2: [6, 6], 3: ["-", 6], 4: [6, "-"] }, reserve: [0, 0]
   }
 };
 

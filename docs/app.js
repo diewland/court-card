@@ -7,6 +7,8 @@
   var COURT_RE = /^(?:คอร์ท|คอร์ด|court)\s*(\d+)(.*)$/i;
   var TIME_ONLY_RE = new RegExp("^" + RANGE);
   var DIVIDER_RE = /^[—–\-_=~\s]+$/;
+  // A slot crossed out with dashes/slashes (e.g. "1 ———-/-") is a cancellation: an open slot.
+  var CANCELLED_RE = /^[—–\-_=~\/\\.\s]*$/;
   // Skipped lines: the "members full" marker (e.g. —สมาชิกเต็ม—) and comments starting with **.
   var SKIP_RE = /สมาชิกเต็ม|^\*\*/;
   var DAY_RE = /วัน(จันทร์|อังคาร|พุธ|พฤหัสบดี|พฤหัส|ศุกร์|เสาร์|อาทิตย์)/;
@@ -57,6 +59,7 @@
       if (p) {
         var rs = ranges(p[2]);
         var name = (rs.length ? p[2].slice(0, rs[0].index) : p[2]).trim();
+        if (CANCELLED_RE.test(name)) name = "";
         var slot = { slot: +p[1], name: name, ranges: rs };
         (name ? data.players : data.openSlots).push(slot);
         lastPlayer = name ? slot : null;
