@@ -11,6 +11,7 @@
   --track: #e6ebe7;
   --reserve-court: #b3372a;
   --reserve-ball: #ffc9c0;
+  --cancel: #d93025;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -26,6 +27,7 @@
     --track: #252c28;
     --reserve-court: #7d2c24;
     --reserve-ball: #f08a7c;
+    --cancel: #ff6b5b;
   }
 }
 :root[data-theme="dark"] {
@@ -41,6 +43,7 @@
   --track: #252c28;
   --reserve-court: #7d2c24;
   --reserve-ball: #f08a7c;
+  --cancel: #ff6b5b;
 }
 
 * { box-sizing: border-box; }
@@ -145,7 +148,15 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
   text-align: center;
 }
 .grid td.off { background: var(--track); color: var(--muted); }
-.grid td.over-cell { background: var(--reserve-court); }
+.grid td.over-cell { position: relative; background: var(--reserve-court); }
+/* Reserve players beyond the 4 circles. */
+.more {
+  position: absolute; top: 1px; right: 2px;
+  font-size: .7rem; font-weight: 700; line-height: 1;
+  padding: 2px 5px; border-radius: 999px;
+  background: var(--reserve-ball); color: var(--reserve-court);
+  border: 2px solid var(--reserve-court);
+}
 .spots { display: block; width: 68px; height: 46px; margin: 0 auto; }
 .spot.filled { fill: var(--ball); stroke: var(--court-line); stroke-width: 2; }
 .spot.open { fill: none; stroke: var(--court-line); stroke-width: 2; stroke-dasharray: 3 3; opacity: .85; }
@@ -154,6 +165,17 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 .legend .dot:not(:first-child) { margin-left: 8px; }
 .dot.reserve { background: var(--reserve-court); }
 .spots.reserve .spot.filled, .dot.reserve .spot.filled { fill: var(--reserve-ball); }
+
+/* A court cell tapped as cancelled: greyed out under a red X. */
+.grid td[data-cell] { position: relative; cursor: pointer; }
+.grid td.cancelled { background: var(--track); }
+.cancelled .spot { stroke: var(--muted); }
+.cancelled .spot.filled { fill: var(--muted); opacity: .45; }
+.cross { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); }
+.cross line, .mini line { stroke: var(--cancel); stroke-width: 5; stroke-linecap: round; }
+.dot.cancelled { display: inline-flex; padding: 3px; background: var(--track); }
+.mini { width: 100%; height: 100%; }
+.mini line { stroke-width: 9; }
 
 .unknown { margin-top: 12px; font-size: .8rem; color: var(--muted); }
 .unknown ul { margin: 4px 0 0; padding-left: 18px; }
@@ -164,4 +186,5 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
   .grid { border-spacing: 3px; }
   .grid td { padding: 4px; }
   .spots { width: 52px; height: 35px; }
+  .cross { inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); }
 }

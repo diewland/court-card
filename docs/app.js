@@ -91,7 +91,10 @@
   // Hourly columns from the earliest to the latest court time, no gaps.
   // One row per court number, even when it is booked in several ranges.
   // Players present in each hour fill the courts booked that hour, in court order.
-  function buildGrid(data) {
+  // A cancelled court cell (cancelled["court@hour"]) takes nobody, so its players move on
+  // to the next booked court and then to สำรอง.
+  function buildGrid(data, cancelled) {
+    cancelled = cancelled || {};
     var bookings = data.courts;
     if (!bookings.length) return null;
     var lo = Math.min.apply(null, bookings.map(function (c) { return Math.floor(toMin(c.start) / 60); }));
@@ -112,6 +115,7 @@
       var n = data.players.filter(function (p) { return !p.ranges.length || anyOverlap(p.ranges, h); }).length;
       courts.forEach(function (c, i) {
         if (!anyOverlap(c.ranges, h)) { cells[i].push(null); return; }
+        if (cancelled[c.court + "@" + h]) { cells[i].push(0); return; }
         var filled = Math.min(CAPACITY, n);
         n -= filled;
         cells[i].push(filled);
@@ -142,12 +146,24 @@
     return '<svg class="dot' + (reserve ? " reserve" : "") + '" viewBox="0 0 20 20" aria-hidden="true"><circle class="spot ' + kind + '" cx="10" cy="10" r="7"/></svg>';
   }
 
-  function spotsCell(f) {
-    return f === null ? '<td class="off">–</td>' : "<td>" + spotsSvg(f) + "</td>";
+  // A red X drawn over a cancelled court cell.
+  function crossSvg(cls) {
+    return '<svg class="' + (cls || "cross") + '" viewBox="0 0 68 46" aria-hidden="true">' +
+      '<line x1="12" y1="6" x2="56" y2="40"/><line x1="56" y1="6" x2="12" y2="40"/></svg>';
   }
-  // A สำรอง cell: 4 red-tone circles, one filled per reserve player, capped at 4.
+
+  // A booked cell can be tapped to mark it cancelled (keyed "court@hour"); unbooked cells can't.
+  function spotsCell(f, court, hour, cancelled) {
+    if (f === null) return '<td class="off">–</td>';
+    var key = court + "@" + hour, off = !!cancelled[key];
+    return '<td data-cell="' + key + '" tabindex="0" title="แตะเพื่อยกเลิก/คืนคอร์ท"' +
+      (off ? ' class="cancelled" aria-label="ยกเลิก"' : "") + ">" +
+      spotsSvg(f) + (off ? crossSvg() : "") + "</td>";
+  }
+  // A สำรอง cell: 4 red-tone circles, one filled per reserve player, then a +N badge for the rest.
   function overCell(n) {
-    return '<td class="over-cell">' + spotsSvg(Math.min(RESERVE_CAPACITY, n), "reserve") + "</td>";
+    return '<td class="over-cell">' + spotsSvg(Math.min(RESERVE_CAPACITY, n), "reserve") +
+      (n > RESERVE_CAPACITY ? '<span class="more">+' + (n - RESERVE_CAPACITY) + "</span>" : "") + "</td>";
   }
 
   // When the card was rendered, e.g. "27 กันยายน 2569 เวลา 18:05 น." (Buddhist year).
@@ -159,8 +175,11 @@
 
   // view "time": one column per hour, one row per court, สำรอง as the last row.
   // view "court": the same grid turned sideways, one column per court, one row per hour.
-  function renderCard(data, view) {
-    var g = buildGrid(data);
+  // cancelled marks court cells as cancelled, e.g. {"3@19": true}: drawn grey under a red X,
+  // and their players move to the other courts booked that hour, then to สำรอง.
+  function renderCard(data, view, cancelled) {
+    cancelled = cancelled || {};
+    var g = buildGrid(data, cancelled);
     var head = '<div class="card-head"><div class="ball" aria-hidden="true"></div><div>' +
       '<p class="day">' + esc(data.day ? "ลงชื่อสมาชิกเล่น " + data.day : data.title || "ตารางเล่นเทนนิส") + "</p>" +
       '<p class="title">' + thaiNow() + "</p>" +
@@ -174,23 +193,29 @@
       th = courtLabels.concat(["สำรอง"]).map(function (l) { return "<th>" + l + "</th>"; }).join("");
       rows = hourLabels.map(function (l, j) {
         return '<tr><th scope="row">' + l + "</th>" +
-          g.cells.map(function (row) { return spotsCell(row[j]); }).join("") +
+          g.cells.map(function (row, i) { return spotsCell(row[j], g.courts[i].court, g.hours[j], cancelled); }).join("") +
           overCell(g.overflow[j]) +
           "</tr>";
       }).join("");
     } else {
       th = hourLabels.map(function (l) { return "<th>" + l + "</th>"; }).join("");
       rows = courtLabels.map(function (l, i) {
-        return '<tr><th scope="row">' + l + "</th>" + g.cells[i].map(spotsCell).join("") + "</tr>";
+        return '<tr><th scope="row">' + l + "</th>" + g.cells[i].map(function (f, j) {
+          return spotsCell(f, g.courts[i].court, g.hours[j], cancelled);
+        }).join("") + "</tr>";
       }).join("") +
         '<tr><th scope="row">สำรอง</th>' + g.overflow.map(overCell).join("") + "</tr>";
     }
 
+    var anyCancelled = g.courts.some(function (c, i) {
+      return g.hours.some(function (h, j) { return g.cells[i][j] !== null && cancelled[c.court + "@" + h]; });
+    });
     return head +
       '<p class="summary"><b>' + data.players.length + "</b> คน · <b>" + g.courts.length + "</b> คอร์ท</p>" +
       '<div class="grid-wrap"><table class="grid"><thead><tr><th></th>' + th + "</tr></thead>" +
       "<tbody>" + rows + "</tbody></table></div>" +
-      '<p class="legend">' + dot("filled") + " จองแล้ว " + dot("open") + " ว่าง " + dot("filled", true) + " สำรอง</p>";
+      '<p class="legend">' + dot("filled") + " จองแล้ว " + dot("open") + " ว่าง " + dot("filled", true) + " สำรอง" +
+      (anyCancelled ? '<span class="dot cancelled">' + crossSvg("mini") + "</span> ยกเลิก" : "") + "</p>";
   }
 
   function renderUnknown(lines) {
@@ -206,13 +231,14 @@
   var save = document.getElementById("save");
   var VIEWS = { time: "Time", court: "Court" };
   var view = "court";
+  var cancelled = {};
   var timer;
   try { if (VIEWS[localStorage.getItem("pa-view")]) view = localStorage.getItem("pa-view"); } catch (e) {}
 
   function update() {
     var data = parseNote(note.value);
     toggle.textContent = "View: " + VIEWS[view];
-    card.innerHTML = renderCard(data, view);
+    card.innerHTML = renderCard(data, view, cancelled);
     save.disabled = !data.courts.length;
     unknown.innerHTML = renderUnknown(data.unknown);
   }
@@ -222,6 +248,24 @@
     try { localStorage.setItem("pa-view", view); } catch (e) {}
     update();
   });
+
+  // Tap (or Enter/Space on) a booked court cell to toggle it cancelled.
+  function toggleCell(e) {
+    var td = e.target.closest && e.target.closest("td[data-cell]");
+    if (!td) return;
+    if (e.type === "keydown") {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+    }
+    var key = td.getAttribute("data-cell");
+    if (cancelled[key]) delete cancelled[key];
+    else cancelled[key] = true;
+    update();
+    var again = card.querySelector('td[data-cell="' + key + '"]');
+    if (again && e.type === "keydown") again.focus();
+  }
+  card.addEventListener("click", toggleCell);
+  card.addEventListener("keydown", toggleCell);
 
   function pngName() {
     var d = new Date();
@@ -255,9 +299,9 @@
   }
 
   // html-to-image drops CSS paint on SVG shapes, so inline the computed values while capturing.
-  var PAINT = ["fill", "stroke", "stroke-width", "stroke-dasharray", "opacity"];
+  var PAINT = ["fill", "stroke", "stroke-width", "stroke-dasharray", "stroke-linecap", "opacity"];
   function inlinePaint(on) {
-    [].forEach.call(card.querySelectorAll("circle"), function (c) {
+    [].forEach.call(card.querySelectorAll("circle, line"), function (c) {
       var cs = on && getComputedStyle(c);
       PAINT.forEach(function (k) {
         if (on) c.style.setProperty(k, cs.getPropertyValue(k));
