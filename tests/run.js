@@ -15,6 +15,10 @@ var CASES = {
     day: "วันศุกร์", players: 10, hours: ["18:00", "19:00"],
     rows: { 2: [6, 6], 3: [3, 4] }, reserve: [0, 0]
   },
+  "friday-preamble": {
+    day: "วันศุกร์", players: 10, hours: ["18:00", "19:00"],
+    rows: { 2: [6, 6], 3: [3, 4] }, reserve: [0, 0]
+  },
   "thursday-split-court": {
     day: "วันพฤหัส", players: 11, hours: ["17:00", "18:00", "19:00"],
     rows: { 2: ["-", 6, 6], 3: [5, "-", 2] }, reserve: [0, 2, 0]

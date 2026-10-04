@@ -11,6 +11,8 @@
   var CANCELLED_RE = /^[—–\-_=~\/\\.\s]*$/;
   // Skipped lines: the "members full" marker (e.g. —สมาชิกเต็ม—) and comments starting with **.
   var SKIP_RE = /สมาชิกเต็ม|^\*\*/;
+  // The note starts at its "member sign-up" title; anything pasted above it is ignored.
+  var START_RE = /^ลงชื่อสมาชิกเล่น/;
   var DAY_RE = /วัน(จันทร์|อังคาร|พุธ|พฤหัสบดี|พฤหัส|ศุกร์|เสาร์|อาทิตย์)/;
 
   function hm(h, m) { return { h: +h, m: +(m || 0) }; }
@@ -34,7 +36,10 @@
     function addCourt(rs) {
       rs.forEach(function (r) { data.courts.push({ court: lastCourt, start: r.start, end: r.end }); });
     }
-    text.split(/\r?\n/).forEach(function (raw) {
+    var lines = text.split(/\r?\n/);
+    var start = lines.findIndex(function (l) { return START_RE.test(l.trim()); });
+    if (start > 0) lines = lines.slice(start);
+    lines.forEach(function (raw) {
       var line = raw.trim();
       if (!line || DIVIDER_RE.test(line) || SKIP_RE.test(line)) return;
 

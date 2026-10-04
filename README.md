@@ -37,6 +37,7 @@ Everything runs in the browser, with no backend and no build step.
 **รอบ17.00 เล่น 4 ออก 4          ← lines starting with ** are comments
 ```
 
+- Anything above the `ลงชื่อสมาชิกเล่น` line is ignored, so it's fine to paste extra chat along with the note.
 - Times can be written `17.00`, `17:00` or `17`.
 - Players fill the courts booked in each hour in court-number order, 6 per court. A player is counted only in the hours they signed up for.
 - Any line that can't be read is listed under the card, so a change in the note's format shows up there.
