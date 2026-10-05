@@ -23,11 +23,13 @@ pa-reader turns a tennis group's daily sign-up note, pasted from chat in Thai, i
 
 ## Architecture (`docs/app.js`)
 
-`app.js` is a single ES5 IIFE and follows one pipeline: `parseNote(text)` → `buildGrid(data)` → `renderCard(data, view)` returns an HTML string that is set as `#card.innerHTML`. It re-renders on textarea input (debounced 250ms) and when the View button is toggled.
+`app.js` is a single ES5 IIFE and follows one pipeline: `parseNote(text)` → `buildGrid(data)` → `renderCard(data, view)` returns an HTML string that is set as `#card.innerHTML`. It re-renders on textarea input (debounced 250ms) and when the view switch is clicked.
 
-The View button toggles `renderCard(data, view)` between two layouts of the same grid. `"time"` has hours as columns, courts as rows and สำรอง as the last row. `"court"` (the default) turns it sideways, with courts as columns, hours as rows and สำรอง as the last column. The choice is kept in `localStorage` (`pa-view`). The test runner checks both views for every case.
+The view switch is a pair of icon buttons (`data-view`, `aria-pressed`) that `renderCard` draws at the top-right of the card header when there is a grid, in the style of a file manager's view switch. Clicks are caught by a delegated listener on `#card`. It toggles `renderCard(data, view)` between two layouts of the same grid. `"time"` has hours as columns, courts as rows and สำรอง as the last row. `"court"` (the default) turns it sideways, with courts as columns, hours as rows and สำรอง as the last column. The choice is kept in `localStorage` (`pa-view`). The test runner checks both views for every case.
 
-The Share button captures `#card` with `htmlToImage.toBlob` (pixel ratio 2). During the capture it adds `.capture` to the card, which lifts `max-width` and the `.grid-wrap` scroll so a wide grid isn't cut off. It also copies each circle's and line's computed `fill`/`stroke` into inline styles, because html-to-image drops CSS paint on SVG shapes. The Google Fonts `<link>` needs `crossorigin="anonymous"` so html-to-image can read and embed Noto Sans Thai. If `navigator.canShare` accepts files, the PNG goes to the share sheet; otherwise it downloads (and it also downloads if sharing is refused).
+The Clear button empties the textarea, resets the `cancelled` map, re-renders and focuses the textarea. It is disabled while the note is empty.
+
+The Share button captures `#card` with `htmlToImage.toBlob` (pixel ratio 2). During the capture it adds `.capture` to the card, which lifts `max-width` and the `.grid-wrap` scroll so a wide grid isn't cut off, and hides the view switch. It also copies each circle's and line's computed `fill`/`stroke` into inline styles, because html-to-image drops CSS paint on SVG shapes. The Google Fonts `<link>` needs `crossorigin="anonymous"` so html-to-image can read and embed Noto Sans Thai. If `navigator.canShare` accepts files, the PNG goes to the share sheet; otherwise it downloads (and it also downloads if sharing is refused).
 
 Tapping a booked court cell (or Enter/Space on it) toggles it cancelled. The `cancelled` map is keyed `"court@hour"` (e.g. `"3@19"`) and kept in memory only; `buildGrid(data, cancelled)` and `renderCard(data, view, cancelled)` take it. A cancelled cell takes no players, so that hour's players fill the other booked courts in court order and the rest go to สำรอง. The cell is drawn grey with empty circles under a red X (`crossSvg`), and the legend gains a ยกเลิก ("cancelled") swatch. Unbooked `–` cells can't be tapped. On every case the test runner cancels the first booked cell and checks that no player is lost in any hour.
 
@@ -37,7 +39,7 @@ Tapping a booked court cell (or Enter/Space on it) toggles it cancelled. The `ca
 - A court line starts with `คอร์ท`, `คอร์ด` or `court`, then a number and one or more ranges.
 - A line holding only a time range continues the line above it, tracked with `lastCourt` and `lastPlayer`. After a court line it is another booking for that court. After a named player it adds another range to that player. Otherwise it goes into `unknown`.
 - A player line is `<slot>[.)] <name> <range>[,<range>…] <free text>`. The name ends where the first range starts, and spaces are optional (`Alice16.00-20.00`, `12Bob 16:00-17.00`). Trailing free text is ignored (`Pm.`, `*เพิ่มเวลา` = "added time"). A slot number with no name, or with only dashes/slashes in place of a name (`1 ———-/-`, a cancellation), is an open slot.
-- A range is `HH.MM-HH.MM`, `HH:MM-HH:MM` or hours only (`18-20`), and is parsed by `ranges()` everywhere. Invalid ranges are dropped: end ≤ start, or an end hour above 24.
+- A range is `HH.MM-HH.MM`, `HH:MM-HH:MM`, hours only (`18-20`) or mixed (`18-20.00`), and is parsed by `ranges()` everywhere. Invalid ranges are dropped: end ≤ start, or an end hour above 24.
 - The first remaining line is the title, and the Thai day name (`วันศุกร์` etc.) is extracted from it.
 - Any other line goes into `unknown[]`, which is shown under the card so format changes are noticed.
 

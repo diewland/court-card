@@ -43,6 +43,11 @@ var CASES = {
     day: "วันจันทร์", players: 16, hours: ["17:00", "18:00", "19:00"],
     rows: { 2: ["-", 6, 6], 3: [5, 6, 6] }, reserve: [0, 1, 0]
   },
+  // Bare start hour with minutes only on the end ("18-20.00"), and the reverse ("18.00-20").
+  "wednesday-mixed-ranges": {
+    day: "วันพุธ", players: 8, hours: ["17:00", "18:00", "19:00"],
+    rows: { 2: ["-", 6, 6], 3: [2, 0, 0] }, reserve: [0, 0, 0]
+  },
   "thursday-range-next-line": {
     day: "วันพฤหัส", players: 15, hours: ["17:00", "18:00", "19:00"],
     rows: { 2: ["-", 6, 6], 3: [6, 6, 5] }, reserve: [0, 1, 0]

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  // A time range: "17.00-20.00", "17:00-20:00" or hours only "18-20".
+  // A time range: "17.00-20.00", "17:00-20:00", hours only "18-20", or mixed "18-20.00".
   var RANGE = "(\\d{1,2})(?:[.:](\\d{2}))?\\s*[-–]\\s*(\\d{1,2})(?:[.:](\\d{2}))?(?!\\d)";
   var PLAYER_RE = /^(\d+)[.)]?\s*(.*)$/;
   var COURT_RE = /^(?:คอร์ท|คอร์ด|court)\s*(\d+)(.*)$/i;
@@ -178,6 +178,27 @@
     }) + " น.";
   }
 
+  // Explorer-style icon switch. Each icon is a 3×3 mini card: green court cells, with the red
+  // สำรอง line where that view puts it (last column in Court view, last row in Time view).
+  function viewIcon(v) {
+    var out = "";
+    for (var row = 0; row < 3; row++) {
+      for (var col = 0; col < 3; col++) {
+        var reserve = v === "court" ? col === 2 : row === 2;
+        out += '<rect class="' + (reserve ? "r" : "c") + '" x="' + (1 + col * 5) + '" y="' + (1 + row * 5) +
+          '" width="4" height="4" rx="1"/>';
+      }
+    }
+    return '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' + out + "</svg>";
+  }
+  function viewSwitch(view) {
+    return '<div class="views" role="group" aria-label="View">' +
+      [["court", "Court view"], ["time", "Time view"]].map(function (v) {
+        return '<button type="button" data-view="' + v[0] + '" aria-pressed="' + (v[0] === view) +
+          '" title="' + v[1] + '" aria-label="' + v[1] + '">' + viewIcon(v[0]) + "</button>";
+      }).join("") + "</div>";
+  }
+
   // view "time": one column per hour, one row per court, สำรอง as the last row.
   // view "court": the same grid turned sideways, one column per court, one row per hour.
   // cancelled marks court cells as cancelled, e.g. {"3@19": true}: drawn grey under a red X,
@@ -188,7 +209,7 @@
     var head = '<div class="card-head"><div class="ball" aria-hidden="true"></div><div>' +
       '<p class="day">' + esc(data.day ? "ลงชื่อสมาชิกเล่น " + data.day : data.title || "ตารางเล่นเทนนิส") + "</p>" +
       '<p class="title">' + thaiNow() + "</p>" +
-      "</div></div>";
+      "</div>" + (g ? viewSwitch(view) : "") + "</div>";
     if (!g) return head + '<p class="empty">ยังไม่มีคอร์ท</p>';
 
     var hourLabels = g.hours.map(function (h) { return fmt({ h: h, m: 0 }); });
@@ -232,8 +253,8 @@
   var note = document.getElementById("note");
   var card = document.getElementById("card");
   var unknown = document.getElementById("unknown");
-  var toggle = document.getElementById("view");
   var save = document.getElementById("save");
+  var clear = document.getElementById("clear");
   var VIEWS = { time: "Time", court: "Court" };
   var view = "court";
   var cancelled = {};
@@ -242,16 +263,28 @@
 
   function update() {
     var data = parseNote(note.value);
-    toggle.textContent = "View: " + VIEWS[view];
     card.innerHTML = renderCard(data, view, cancelled);
     save.disabled = !data.courts.length;
+    clear.disabled = !note.value;
     unknown.innerHTML = renderUnknown(data.unknown);
   }
 
-  toggle.addEventListener("click", function () {
-    view = view === "time" ? "court" : "time";
+  card.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("[data-view]");
+    if (!btn || btn.getAttribute("data-view") === view) return;
+    view = btn.getAttribute("data-view");
     try { localStorage.setItem("pa-view", view); } catch (e) {}
     update();
+    card.querySelector('[data-view="' + view + '"]').focus();
+  });
+
+  // Empty the note for the next paste; cancelled cells belonged to the old note.
+  clear.addEventListener("click", function () {
+    clearTimeout(timer);
+    note.value = "";
+    cancelled = {};
+    update();
+    note.focus();
   });
 
   // Tap (or Enter/Space on) a booked court cell to toggle it cancelled.

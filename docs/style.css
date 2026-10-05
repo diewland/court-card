@@ -66,7 +66,7 @@ body {
   .layout { grid-template-columns: minmax(0, 1fr); }
 }
 /* Desktop: the intro gets its own row in the left column, so the card's top lines up with the textarea.
-   The card's extra height goes into the last 1fr row, keeping the View button under the textarea. */
+   The card's extra height goes into the last 1fr row, keeping the buttons under the textarea. */
 @media (min-width: 801px) {
   .layout { grid-template-rows: auto auto auto 1fr; row-gap: 0; }
   .input { display: contents; }
@@ -116,6 +116,21 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
   padding: 20px;
 }
 .card-head { display: flex; align-items: center; gap: 12px; }
+.views {
+  margin-left: auto; align-self: flex-start; flex: none;
+  display: inline-flex;
+  border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+}
+.views button {
+  padding: 6px 8px; line-height: 0;
+  border-radius: 0; background: transparent; color: var(--muted);
+}
+.views button + button { border-left: 1px solid var(--line); }
+.views button[aria-pressed="true"] { background: var(--track); color: var(--fg); }
+.views .c { fill: var(--court); }
+.views .r { fill: var(--reserve-court); }
+.views button[aria-pressed="false"] svg { opacity: .4; }
+.card.capture .views { display: none; }
 .ball {
   width: 36px; height: 36px; flex: none;
   border-radius: 50%;
