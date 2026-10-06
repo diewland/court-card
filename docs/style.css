@@ -130,7 +130,6 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 .views .c { fill: var(--court); }
 .views .r { fill: var(--reserve-court); }
 .views button[aria-pressed="false"] svg { opacity: .4; }
-.card.capture .views { display: none; }
 .ball {
   width: 36px; height: 36px; flex: none;
   border-radius: 50%;

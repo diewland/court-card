@@ -339,7 +339,7 @@
   // html-to-image drops CSS paint on SVG shapes, so inline the computed values while capturing.
   var PAINT = ["fill", "stroke", "stroke-width", "stroke-dasharray", "stroke-linecap", "opacity"];
   function inlinePaint(on) {
-    [].forEach.call(card.querySelectorAll("circle, line"), function (c) {
+    [].forEach.call(card.querySelectorAll("circle, line, rect, .views svg"), function (c) {
       var cs = on && getComputedStyle(c);
       PAINT.forEach(function (k) {
         if (on) c.style.setProperty(k, cs.getPropertyValue(k));
