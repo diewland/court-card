@@ -1,4 +1,4 @@
-# PA Reader
+# Court Card
 
 Paste the daily tennis sign-up note from the group chat and get a reservation graphic. The graphic is a grid of courts × hours:
 
@@ -16,7 +16,7 @@ The card updates as you type. The **View** button switches between two layouts, 
 
 Everything runs in the browser, with no backend and no build step.
 
-**Live:** https://diewland.github.io/pa-reader/
+**Live:** https://diewland.github.io/court-card/
 
 ## Note format
 

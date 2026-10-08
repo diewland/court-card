@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-pa-reader turns a tennis group's daily sign-up note, pasted from chat in Thai, into a reservation graphic. The graphic is a grid of courts × hours. Each court cell shows 6 circles (solid means reserved, blank means available), and a red สำรอง ("reserve") line shows who is left over. Everything runs in the browser. There is no backend, build step or package manager. The only third-party code is html-to-image, loaded from jsDelivr in `index.html` and used only by the Share button.
+Court Card turns a tennis group's daily sign-up note, pasted from chat in Thai, into a reservation graphic. The graphic is a grid of courts × hours. Each court cell shows 6 circles (solid means reserved, blank means available), and a red สำรอง ("reserve") line shows who is left over. Everything runs in the browser. There is no backend, build step or package manager. The only third-party code is html-to-image, loaded from jsDelivr in `index.html` and used only by the Share button.
 
 `docs/` is the website root, served by GitHub Pages from `master` → `/docs`; `.nojekyll` turns Jekyll off. All the site code lives in `docs/`: `index.html`, `app.js` and `style.css`.
 

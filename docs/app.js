@@ -308,7 +308,7 @@
   function pngName() {
     var d = new Date();
     function p(n) { return String(n).padStart(2, "0"); }
-    return "pa-reader-" + d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+    return "court-card-" + d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
       "-" + p(d.getHours()) + p(d.getMinutes()) + ".png";
   }
 
