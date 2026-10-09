@@ -1,8 +1,9 @@
 (function () {
   "use strict";
 
-  // A time range: "17.00-20.00", "17:00-20:00", hours only "18-20", or mixed "18-20.00".
-  var RANGE = "(\\d{1,2})(?:[.:](\\d{2}))?\\s*[-–]\\s*(\\d{1,2})(?:[.:](\\d{2}))?(?!\\d)";
+  // A time range: "17.00-20.00", "17:00-20:00", hours only "18-20", mixed "18-20.00",
+  // or with ถึง ("to") in place of the dash, "18 ถึง 20".
+  var RANGE = "(\\d{1,2})(?:[.:](\\d{2}))?\\s*(?:[-–]|ถึง)\\s*(\\d{1,2})(?:[.:](\\d{2}))?(?!\\d)";
   var PLAYER_RE = /^(\d+)[.)]?\s*(.*)$/;
   var COURT_RE = /^(?:คอร์ท|คอร์ด|court)\s*(\d+)(.*)$/i;
   var TIME_ONLY_RE = new RegExp("^" + RANGE);

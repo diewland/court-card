@@ -39,7 +39,7 @@ Tapping a booked court cell (or Enter/Space on it) toggles it cancelled. The `ca
 - A court line starts with `คอร์ท`, `คอร์ด` or `court`, then a number and one or more ranges.
 - A line holding only a time range continues the line above it, tracked with `lastCourt` and `lastPlayer`. After a court line it is another booking for that court. After a named player it adds another range to that player. Otherwise it goes into `unknown`.
 - A player line is `<slot>[.)] <name> <range>[,<range>…] <free text>`. The name ends where the first range starts, and spaces are optional (`Alice16.00-20.00`, `12Bob 16:00-17.00`). Trailing free text is ignored (`Pm.`, `*เพิ่มเวลา` = "added time"). A slot number with no name, or with only dashes/slashes in place of a name (`1 ———-/-`, a cancellation), is an open slot.
-- A range is `HH.MM-HH.MM`, `HH:MM-HH:MM`, hours only (`18-20`) or mixed (`18-20.00`), and is parsed by `ranges()` everywhere. Invalid ranges are dropped: end ≤ start, or an end hour above 24.
+- A range is `HH.MM-HH.MM`, `HH:MM-HH:MM`, hours only (`18-20`) or mixed (`18-20.00`), with ถึง ("to") allowed in place of the dash (`18 ถึง 20`), and is parsed by `ranges()` everywhere. Invalid ranges are dropped: end ≤ start, or an end hour above 24.
 - The first remaining line is the title, and the Thai day name (`วันศุกร์` etc.) is extracted from it.
 - Any other line goes into `unknown[]`, which is shown under the card so format changes are noticed.
 

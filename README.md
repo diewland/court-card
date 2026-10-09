@@ -24,7 +24,7 @@ Everything runs in the browser, with no backend and no build step.
 ลงชื่อสมาชิกเล่น วันพฤหัส        ← title; the day name goes in the card header
 1 Alice   17.00-20.00
 2 Bob18.00-20.00                 ← a space before the time is optional
-3 Carol 18-20                    ← hours only is fine
+3 Carol 18-20                    ← hours only is fine, and so is "18 ถึง 20"
 4 Dave   18:00-20:00 เพิ่มเวลา    ← free text after the time is ignored
 5.Eve    17.00-18.00,19.00-20.00 ← skip a middle hour on one line…
 6. Frank 17.00-18.00
