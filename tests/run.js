@@ -83,9 +83,10 @@ function render(note) {
   var document = {
     getElementById: function (id) {
       return els[id] || (els[id] = { value: note, innerHTML: "", addEventListener: function () {} });
-    }
+    },
+    addEventListener: function () {}
   };
-  var window = {};
+  var window = { addEventListener: function () {} };
   vm.runInNewContext(APP, { document: document, window: window, setTimeout: setTimeout, clearTimeout: clearTimeout });
   return {
     card: window.renderCard(window.parseNote(note), "time"),

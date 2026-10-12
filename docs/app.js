@@ -372,6 +372,11 @@
     clearTimeout(timer);
     timer = setTimeout(update, 250);
   });
+  // Browsers can put the note back (tab restore, back/forward) without an input event.
+  window.addEventListener("pageshow", update);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) update();
+  });
   update();
 
   window.parseNote = parseNote;
