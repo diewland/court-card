@@ -151,6 +151,7 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 /* While saving as PNG, show the whole grid instead of a scrolled slice. */
 .card.capture { max-width: none; }
 .card.capture .grid-wrap { overflow: visible; }
+.card.capture .views { display: none; }
 .grid { border-collapse: separate; border-spacing: 4px; }
 .grid th { font-size: .8rem; font-weight: 600; color: var(--muted); padding: 2px 4px; }
 .grid thead th { text-align: center; }
