@@ -158,11 +158,19 @@
       '<line x1="12" y1="6" x2="56" y2="40"/><line x1="56" y1="6" x2="12" y2="40"/></svg>';
   }
 
-  // A booked cell can be tapped to mark it cancelled (keyed "court@hour"); unbooked cells can't.
-  function spotsCell(f, court, hour, cancelled) {
+  // A rain cloud for the rained-out badge.
+  function rainSvg() {
+    return '<svg class="rain-icon" viewBox="0 0 24 24" aria-hidden="true">' +
+      '<path d="M7 15a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 7.5a3.75 3.75 0 0 1 0 7.5z"/>' +
+      '<line x1="8" y1="18" x2="7" y2="21"/><line x1="12" y1="18" x2="11" y2="21"/><line x1="16" y1="18" x2="15" y2="21"/></svg>';
+  }
+
+  // A booked cell can be tapped to mark it cancelled (keyed "court@hour"); unbooked cells can't,
+  // and neither can any cell when the whole day is rained out (locked).
+  function spotsCell(f, court, hour, cancelled, locked) {
     if (f === null) return '<td class="off">–</td>';
     var key = court + "@" + hour, off = !!cancelled[key];
-    return '<td data-cell="' + key + '" tabindex="0" title="แตะเพื่อยกเลิก/คืนคอร์ท"' +
+    return "<td" + (locked ? "" : ' data-cell="' + key + '" tabindex="0" title="แตะเพื่อยกเลิก/คืนคอร์ท"') +
       (off ? ' class="cancelled" aria-label="ยกเลิก"' : "") + ">" +
       spotsSvg(f) + (off ? crossSvg() : "") + "</td>";
   }
@@ -204,7 +212,8 @@
   // view "court": the same grid turned sideways, one column per court, one row per hour.
   // cancelled marks court cells as cancelled, e.g. {"3@19": true}: drawn grey under a red X,
   // and their players move to the other courts booked that hour, then to สำรอง.
-  function renderCard(data, view, cancelled) {
+  // rain marks the whole day called off: a งดเล่น ฝนตก badge over a dimmed grid that can't be tapped.
+  function renderCard(data, view, cancelled, rain) {
     cancelled = cancelled || {};
     var g = buildGrid(data, cancelled);
     var head = '<div class="card-head"><div class="ball" aria-hidden="true"></div><div>' +
@@ -220,7 +229,7 @@
       th = courtLabels.concat(["สำรอง"]).map(function (l) { return "<th>" + l + "</th>"; }).join("");
       rows = hourLabels.map(function (l, j) {
         return '<tr><th scope="row">' + l + "</th>" +
-          g.cells.map(function (row, i) { return spotsCell(row[j], g.courts[i].court, g.hours[j], cancelled); }).join("") +
+          g.cells.map(function (row, i) { return spotsCell(row[j], g.courts[i].court, g.hours[j], cancelled, rain); }).join("") +
           overCell(g.overflow[j]) +
           "</tr>";
       }).join("");
@@ -228,7 +237,7 @@
       th = hourLabels.map(function (l) { return "<th>" + l + "</th>"; }).join("");
       rows = courtLabels.map(function (l, i) {
         return '<tr><th scope="row">' + l + "</th>" + g.cells[i].map(function (f, j) {
-          return spotsCell(f, g.courts[i].court, g.hours[j], cancelled);
+          return spotsCell(f, g.courts[i].court, g.hours[j], cancelled, rain);
         }).join("") + "</tr>";
       }).join("") +
         '<tr><th scope="row">สำรอง</th>' + g.overflow.map(overCell).join("") + "</tr>";
@@ -239,8 +248,11 @@
     });
     return head +
       '<p class="summary"><b>' + data.players.length + "</b> คน · <b>" + g.courts.length + "</b> คอร์ท</p>" +
-      '<div class="grid-wrap"><table class="grid"><thead><tr><th></th>' + th + "</tr></thead>" +
+      '<div class="grid-area' + (rain ? " rained" : "") + '"><div class="grid-wrap"><table class="grid"><thead><tr><th></th>' + th + "</tr></thead>" +
       "<tbody>" + rows + "</tbody></table></div>" +
+      // Over the grid, outside the scrolling wrapper so it stays centred on what is visible.
+      (rain ? '<div class="rainout"><div class="rain-badge">' + rainSvg() + "งดเล่น ฝนตก</div></div>" : "") +
+      "</div>" +
       '<p class="legend">' + dot("filled") + " จองแล้ว " + dot("open") + " ว่าง " + dot("filled", true) + " สำรอง" +
       (anyCancelled ? '<span class="dot cancelled">' + crossSvg("mini") + "</span> ยกเลิก" : "") + "</p>";
   }
@@ -256,16 +268,19 @@
   var unknown = document.getElementById("unknown");
   var save = document.getElementById("save");
   var clear = document.getElementById("clear");
+  var rainBtn = document.getElementById("rain");
   var VIEWS = { time: "Time", court: "Court" };
   var view = "court";
   var cancelled = {};
+  var rain = false;
   var timer;
   try { if (VIEWS[localStorage.getItem("pa-view")]) view = localStorage.getItem("pa-view"); } catch (e) {}
 
   function update() {
     var data = parseNote(note.value);
-    card.innerHTML = renderCard(data, view, cancelled);
+    card.innerHTML = renderCard(data, view, cancelled, rain);
     save.disabled = !data.courts.length;
+    rainBtn.disabled = !data.courts.length;
     clear.disabled = !note.value;
     unknown.innerHTML = renderUnknown(data.unknown);
   }
@@ -279,11 +294,21 @@
     card.querySelector('[data-view="' + view + '"]').focus();
   });
 
-  // Empty the note for the next paste; cancelled cells belonged to the old note.
+  function setRain(on) {
+    rain = on;
+    rainBtn.setAttribute("aria-pressed", String(on));
+  }
+  rainBtn.addEventListener("click", function () {
+    setRain(!rain);
+    update();
+  });
+
+  // Empty the note for the next paste; cancelled cells and the rain-out belonged to the old note.
   clear.addEventListener("click", function () {
     clearTimeout(timer);
     note.value = "";
     cancelled = {};
+    setRain(false);
     update();
     note.focus();
   });
@@ -340,7 +365,7 @@
   // html-to-image drops CSS paint on SVG shapes, so inline the computed values while capturing.
   var PAINT = ["fill", "stroke", "stroke-width", "stroke-dasharray", "stroke-linecap", "opacity"];
   function inlinePaint(on) {
-    [].forEach.call(card.querySelectorAll("circle, line"), function (c) {
+    [].forEach.call(card.querySelectorAll("circle, line, path"), function (c) {
       var cs = on && getComputedStyle(c);
       PAINT.forEach(function (k) {
         if (on) c.style.setProperty(k, cs.getPropertyValue(k));

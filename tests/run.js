@@ -199,6 +199,15 @@ names.forEach(function (name) {
     });
     if (/class="mini"/.test(out.card + out.courtCard)) errors.push("cancelled swatch shown with nothing cancelled");
   }
+  // Rained out: a badge, the same numbers, and no tappable cell.
+  var wet = out.window.renderCard(out.data, "time", exp.cancel, true);
+  var wetCourt = out.window.renderCard(out.data, "court", exp.cancel, true);
+  if (!/class="rainout"/.test(wet) || !/class="rainout"/.test(wetCourt)) errors.push("rain: no badge");
+  if (/class="rainout"/.test(out.card + out.courtCard)) errors.push("rain badge shown without rain");
+  if (JSON.stringify(readCard(wet)) !== JSON.stringify(got)) errors.push("rain changed the time view numbers");
+  if (JSON.stringify(readCourtCard(wetCourt)) !== JSON.stringify(courtGot)) errors.push("rain changed the court view numbers");
+  if (/data-cell/.test(wet + wetCourt)) errors.push("rain: court cell still tappable");
+
   if (/class="off"[^>]*data-cell|data-cell[^>]*class="off"/.test(out.card + out.courtCard)) errors.push("unbooked cell is tappable");
 
   if (errors.length) {

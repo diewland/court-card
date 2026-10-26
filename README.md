@@ -12,6 +12,8 @@ The card updates as you type. The **View** button switches between two layouts, 
 - **Court** (the default): courts across the top, one row per hour.
 - **Time**: hours across the top, one row per court.
 
+**Rain** marks the whole day called off. The card shows a งดเล่น ฝนตก ("no play, rain") banner over a dimmed grid; press it again to undo.
+
 **Share** turns the card into an image. On a phone it opens the share sheet so you can send it straight to the chat; on a computer it downloads the file.
 
 Everything runs in the browser, with no backend and no build step.
