@@ -217,7 +217,7 @@
     cancelled = cancelled || {};
     var g = buildGrid(data, cancelled);
     var head = '<div class="card-head"><div class="ball" aria-hidden="true"></div><div>' +
-      '<p class="day">' + esc(data.day ? "ลงชื่อสมาชิกเล่น " + data.day : data.title || "ตารางเล่นเทนนิส") + "</p>" +
+      '<p class="day">' + esc(data.day ? "สมาชิก" + data.day : data.title || "ตารางเล่นเทนนิส") + "</p>" +
       '<p class="title">' + thaiNow() + "</p>" +
       "</div>" + (g ? viewSwitch(view) : "") + "</div>";
     if (!g) return head + '<p class="empty">ยังไม่มีคอร์ท</p>';

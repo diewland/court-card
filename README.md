@@ -5,7 +5,7 @@ Paste the daily tennis sign-up note from the group chat and get a reservation gr
 - **Court cell:** 6 circles, one per member spot. A solid circle is reserved and a blank circle is available. A grey `–` means the court isn't booked that hour.
 - **สำรอง ("reserve") cell:** 4 red circles, one filled per member left over in that hour after every booked court is full. The display is capped at 4.
 
-The card's header is `ลงชื่อสมาชิกเล่น <day>` ("member sign-up <day>"), and the subtitle shows when the card was rendered, in Thai with the Buddhist year.
+The card's header is `สมาชิก<day>` ("members <day>"), and the subtitle shows when the card was rendered, in Thai with the Buddhist year.
 
 The card updates as you type. The **View** button switches between two layouts, and the page remembers the last one used:
 

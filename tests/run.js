@@ -121,7 +121,7 @@ function readCard(html) {
   var reserve = html.match(/<tr><th scope="row">สำรอง<\/th>(.*?)<\/tr>/);
   var thead = html.match(/<thead>(.*?)<\/thead>/);
   return {
-    day: (html.match(/<p class="day">ลงชื่อสมาชิกเล่น (.*?)<\/p>/) || [])[1],
+    day: (html.match(/<p class="day">สมาชิก(.*?)<\/p>/) || [])[1],
     players: +(html.match(/<p class="summary"><b>(\d+)<\/b>/) || [])[1],
     hours: thead ? all(/<th>([^<]+)<\/th>/, thead[1]).map(function (m) { return m[1]; }) : [],
     rows: rows,
