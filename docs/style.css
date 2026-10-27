@@ -157,7 +157,7 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 .grid-area { position: relative; margin-top: 16px; }
 .grid-wrap { overflow-x: auto; }
 /* While saving as PNG, show the whole grid instead of a scrolled slice. */
-.card.capture { max-width: none; }
+.card.capture { max-width: none; min-width: 0; }
 .card.capture .grid-wrap { overflow: visible; }
 .card.capture .views { display: none; }
 .grid { border-collapse: separate; border-spacing: 4px; }
