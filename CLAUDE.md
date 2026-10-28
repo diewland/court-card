@@ -53,6 +53,8 @@ A member can skip a middle hour by putting both ranges on one line (`17.00-18.00
 - In each hour, count the players with any range overlapping that hour; players with no time count for every hour. Fill the courts booked that hour in court order, `CAPACITY = 6` per court.
 - Players left over go into `overflow[hour]`, which is always rendered as the `สำรอง` ("reserve") row. Each reserve cell looks like a court cell in a red tone, but with 4 circles in a 2×2 block (`RESERVE_CAPACITY`), one filled per leftover player. Anyone beyond 4 is shown as a +N badge in the cell's corner, so the cell always shows the true `overflow` count. Unbooked cells are `null` and render as a grey `–` cell.
 
+The summary line (`N คน · M คอร์ท`) ends with a capacity gauge: a small bar and a percentage in seat-hours. Seats are the booked, non-cancelled court cells × `CAPACITY`; demand is everyone seated plus สำรอง, summed over the hours. It turns red past 100%, and shows `–` when every cell is cancelled.
+
 Card text is Thai. The header is `สมาชิก<day>` ("members <day>"), or the note's title if no day is found. The subtitle is the render time from `thaiNow()`, e.g. `27 กันยายน 2569 เวลา 18:05 น.` (Buddhist year). The tests don't check it.
 
 ## Styling (`docs/style.css`)

@@ -153,6 +153,11 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 .title { margin: 0; color: var(--muted); font-size: .85rem; }
 .summary { margin: 14px 0 0; font-size: .9rem; color: var(--muted); }
 .summary b { color: var(--fg); }
+.gauge { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; vertical-align: middle; }
+.gauge-bar { width: 80px; height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+.gauge-bar > span { display: block; height: 100%; background: var(--court); }
+.gauge.over .gauge-bar > span { background: var(--reserve-court); }
+.gauge.over b { color: var(--reserve-court); }
 
 .grid-area { position: relative; margin-top: 16px; }
 .grid-wrap { overflow-x: auto; }

@@ -246,8 +246,25 @@
     var anyCancelled = g.courts.some(function (c, i) {
       return g.hours.some(function (h, j) { return g.cells[i][j] !== null && cancelled[c.court + "@" + h]; });
     });
+    // Capacity gauge, in seat-hours: seats are booked, non-cancelled court cells × 6; demand is
+    // everyone seated plus สำรอง, summed over the hours. Red past 100%.
+    var n = data.players.length, seats = 0, demand = 0;
+    g.courts.forEach(function (c, i) {
+      g.hours.forEach(function (h, j) {
+        var f = g.cells[i][j];
+        if (f === null) return;
+        if (!cancelled[c.court + "@" + h]) seats += CAPACITY;
+        demand += f;
+      });
+    });
+    g.overflow.forEach(function (o) { demand += o; });
+    var pct = seats ? Math.round(demand / seats * 100) : 0, over = seats ? pct > 100 : demand > 0;
+    var gauge = '<span class="gauge' + (over ? " over" : "") + '" role="meter" aria-valuemin="0" aria-valuemax="100"' +
+      ' aria-valuenow="' + pct + '" aria-label="ความจุ ' + demand + "/" + seats + '" title="' + demand + "/" + seats + '">' +
+      '<span class="gauge-bar"><span style="width:' + (over ? 100 : pct) + '%"></span></span><b>' +
+      (seats ? pct + "%" : "–") + "</b></span>";
     return head +
-      '<p class="summary"><b>' + data.players.length + "</b> คน · <b>" + g.courts.length + "</b> คอร์ท</p>" +
+      '<p class="summary"><b>' + n + "</b> คน · <b>" + g.courts.length + "</b> คอร์ท" + gauge + "</p>" +
       '<div class="grid-area' + (rain ? " rained" : "") + '"><div class="grid-wrap"><table class="grid"><thead><tr><th></th>' + th + "</tr></thead>" +
       "<tbody>" + rows + "</tbody></table></div>" +
       // Over the grid, outside the scrolling wrapper so it stays centred on what is visible.
