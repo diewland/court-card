@@ -265,20 +265,30 @@
     });
     // Capacity gauge, in seat-hours: seats are booked, non-cancelled court cells × 6; demand is
     // everyone seated plus สำรอง, summed over the hours. Red past 100%.
-    var n = data.players.length, seats = 0, demand = 0;
+    // The bar stacks seated seat-hours by shade step, most hours first (same colours as the
+    // circles), then สำรอง in red, scaled to whichever is bigger of seats and demand.
+    var n = data.players.length, seats = 0, demand = 0, byLevel = [0, 0, 0, 0, 0], reserve = 0;
     g.courts.forEach(function (c, i) {
       g.hours.forEach(function (h, j) {
         var f = g.cells[i][j];
         if (f === null) return;
         if (!cancelled[c.court + "@" + h]) seats += CAPACITY;
         demand += f;
+        g.levels[i][j].forEach(function (l) { byLevel[l]++; });
       });
     });
-    g.overflow.forEach(function (o) { demand += o; });
+    g.overflow.forEach(function (o) { demand += o; reserve += o; });
     var pct = seats ? Math.round(demand / seats * 100) : 0, over = seats ? pct > 100 : demand > 0;
+    var scale = Math.max(seats, demand) || 1;
+    function seg(cls, count) {
+      return count ? '<span class="' + cls + '" style="width:' + (count / scale * 100).toFixed(2) + '%"></span>' : "";
+    }
+    var segs = "";
+    for (var l = MAX_LEVEL; l >= 1; l--) segs += seg("h" + l, byLevel[l]);
+    segs += seg("res", reserve);
     var gauge = '<span class="gauge' + (over ? " over" : "") + '" role="meter" aria-valuemin="0" aria-valuemax="100"' +
       ' aria-valuenow="' + pct + '" aria-label="ความจุ ' + demand + "/" + seats + '" title="' + demand + "/" + seats + '">' +
-      '<span class="gauge-bar"><span style="width:' + (over ? 100 : pct) + '%"></span></span><b>' +
+      '<span class="gauge-bar">' + segs + "</span><b>" +
       (seats ? pct + "%" : "–") + "</b></span>";
     return head +
       '<p class="summary"><b>' + n + "</b> คน · <b>" + g.courts.length + "</b> คอร์ท" + gauge + "</p>" +

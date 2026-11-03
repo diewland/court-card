@@ -166,9 +166,14 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 .summary { margin: 14px 0 0; font-size: .9rem; color: var(--muted); }
 .summary b { color: var(--fg); }
 .gauge { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; vertical-align: middle; }
-.gauge-bar { width: 80px; height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
-.gauge-bar > span { display: block; height: 100%; background: var(--court); }
-.gauge.over .gauge-bar > span { background: var(--reserve-court); }
+.gauge-bar { display: flex; width: 80px; height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+/* Stacked like the circles: 4h+ (darkest) first, down to 1h, then สำรอง in red. */
+.gauge-bar > span { flex: none; height: 100%; }
+.gauge-bar .h4 { background: var(--ball-4); }
+.gauge-bar .h3 { background: var(--ball-3); }
+.gauge-bar .h2 { background: var(--ball-2); }
+.gauge-bar .h1 { background: var(--ball-1); }
+.gauge-bar .res { background: var(--reserve-court); }
 .gauge.over b { color: var(--reserve-court); }
 
 .grid-area { position: relative; margin-top: 16px; }
