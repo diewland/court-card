@@ -287,7 +287,7 @@
       // Over the grid, outside the scrolling wrapper so it stays centred on what is visible.
       (rain ? '<div class="rainout"><div class="rain-badge">' + rainSvg() + "งดเล่น ฝนตก</div></div>" : "") +
       "</div>" +
-      '<p class="legend"><span class="shades">' + [1, 2, 3, 4].map(function (l) { return dot("filled h" + l); }).join("") + "</span> 1–4+ ชม. " + dot("open") + " ว่าง " + dot("filled", true) + " สำรอง" +
+      '<p class="legend">' + dot("filled") + " จองแล้ว " + dot("open") + " ว่าง " + dot("filled", true) + " สำรอง" +
       (anyCancelled ? '<span class="dot cancelled">' + crossSvg("mini") + "</span> ยกเลิก" : "") + "</p>";
   }
 

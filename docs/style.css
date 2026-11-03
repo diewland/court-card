@@ -208,8 +208,6 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 .legend { margin: 12px 0 0; font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .dot { width: 20px; height: 20px; background: var(--court); border-radius: 5px; }
 .legend .dot:not(:first-child) { margin-left: 8px; }
-.legend .shades { display: inline-flex; gap: 2px; }
-.legend .shades .dot { margin-left: 0; }
 .dot.reserve { background: var(--reserve-court); }
 .spots.reserve .spot.filled, .dot.reserve .spot.filled { fill: var(--reserve-ball); }
 
