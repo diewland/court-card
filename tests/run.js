@@ -10,6 +10,7 @@ var APP = fs.readFileSync(path.join(__dirname, "../docs/app.js"), "utf8");
 // Expected card per note. Rows are keyed by court number, one value per hour column:
 // a number is the count of solid circles, "-" is an hour the court isn't booked.
 // reserve is the สำรอง row: people shown per hour (solid circles plus the +N badge).
+// levels (optional) maps "court@hour" to the shade step of each solid circle in that cell.
 var CASES = {
   "friday-basic": {
     day: "วันศุกร์", players: 10, hours: ["18:00", "19:00"],
@@ -21,7 +22,9 @@ var CASES = {
   },
   "thursday-split-court": {
     day: "วันพฤหัส", players: 11, hours: ["17:00", "18:00", "19:00"],
-    rows: { 2: ["-", 6, 6], 3: [5, "-", 2] }, reserve: [0, 2, 0]
+    rows: { 2: ["-", 6, 6], 3: [5, "-", 2] }, reserve: [0, 2, 0],
+    // Shade step per seated player (hours booked, 1–4+), most hours first.
+    levels: { "3@17": [3, 3, 2, 2, 1], "2@18": [3, 3, 2, 2, 2, 2], "3@19": [1, 1] }
   },
   "thursday-pm-suffix": {
     day: "วันพฤหัส", players: 12, hours: ["17:00", "18:00", "19:00"],
@@ -176,7 +179,20 @@ names.forEach(function (name) {
     var n = (s[0].match(/<circle/g) || []).length;
     var want = / reserve"/.test(s[0]) ? 4 : 6;
     if (n !== want) errors.push("cell " + i + " has " + n + " circles, expected " + want);
+    // Court circles carry a shade step h1–h4; reserve circles don't.
+    var filled = all(/class="spot filled([^"]*)"/, s[0]).map(function (m) { return m[1]; });
+    var shaded = / reserve"/.test(s[0]) ? /^$/ : /^ h[1-4]$/;
+    if (!filled.every(function (f) { return shaded.test(f); })) errors.push("cell " + i + " has wrong shade classes: " + filled.join(","));
   });
+  if (exp.levels) {
+    Object.keys(exp.levels).forEach(function (key) {
+      var td = out.card.match(new RegExp('<td data-cell="' + key + '"[^>]*>(.*?)</td>'));
+      var got = td ? all(/class="spot filled h(\d)"/, td[1]).map(function (m) { return +m[1]; }) : null;
+      if (JSON.stringify(got) !== JSON.stringify(exp.levels[key])) {
+        errors.push("levels " + key + ": expected " + JSON.stringify(exp.levels[key]) + ", got " + JSON.stringify(got));
+      }
+    });
+  }
 
   // Cancelling the first booked cell (on cases without their own "cancel"): that cell drops
   // to 0 under a red X, and every hour still places the same number of players.

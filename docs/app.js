@@ -99,6 +99,15 @@
   // Players present in each hour fill the courts booked that hour, in court order.
   // A cancelled court cell (cancelled["court@hour"]) takes nobody, so its players move on
   // to the next booked court and then to สำรอง.
+  // Shade step for a player's circles: hours booked, rounded up, 1 to 4+.
+  // A player with no time plays every hour of the grid.
+  var MAX_LEVEL = 4;
+  function playerLevel(p, nHours) {
+    var mins = p.ranges.reduce(function (s, r) { return s + toMin(r.end) - toMin(r.start); }, 0);
+    var h = p.ranges.length ? Math.ceil(mins / 60) : nHours;
+    return Math.max(1, Math.min(MAX_LEVEL, h));
+  }
+
   function buildGrid(data, cancelled) {
     cancelled = cancelled || {};
     var bookings = data.courts;
@@ -116,19 +125,26 @@
       row.ranges.push(b);
     });
 
+    // levels[i][j] lists the shade step of each player seated in that cell, most hours first.
     var cells = courts.map(function () { return []; });
+    var levels = courts.map(function () { return []; });
     var overflow = hours.map(function (h) {
-      var n = data.players.filter(function (p) { return !p.ranges.length || anyOverlap(p.ranges, h); }).length;
+      var here = data.players.filter(function (p) { return !p.ranges.length || anyOverlap(p.ranges, h); });
+      var n = here.length;
       courts.forEach(function (c, i) {
-        if (!anyOverlap(c.ranges, h)) { cells[i].push(null); return; }
-        if (cancelled[c.court + "@" + h]) { cells[i].push(0); return; }
+        if (!anyOverlap(c.ranges, h)) { cells[i].push(null); levels[i].push(null); return; }
+        if (cancelled[c.court + "@" + h]) { cells[i].push(0); levels[i].push([]); return; }
         var filled = Math.min(CAPACITY, n);
+        var seated = here.slice(here.length - n, here.length - n + filled);
         n -= filled;
         cells[i].push(filled);
+        // Shown longest booking first: darkest circles lead the cell.
+        levels[i].push(seated.map(function (p) { return playerLevel(p, hours.length); })
+          .sort(function (a, b) { return b - a; }));
       });
       return n;
     });
-    return { hours: hours, courts: courts, cells: cells, overflow: overflow };
+    return { hours: hours, courts: courts, cells: cells, levels: levels, overflow: overflow };
   }
 
   function esc(s) {
@@ -138,12 +154,13 @@
   }
 
   // kind "reserve" draws the สำรอง cell: 4 red-tone circles in a 2×2 block instead of 6 in 3×2.
-  function spotsSvg(filled, kind) {
+  // levels (court cells only) adds a shade class h1–h4 to each filled circle: darker for more hours.
+  function spotsSvg(filled, kind, levels) {
     var total = kind === "reserve" ? RESERVE_CAPACITY : CAPACITY;
     var cols = total / 2, x0 = (68 - (cols - 1) * 22) / 2, out = "";
     for (var i = 0; i < total; i++) {
       var x = x0 + (i % cols) * 22, y = 12 + Math.floor(i / cols) * 22;
-      out += '<circle class="spot ' + (i < filled ? "filled" : "open") + '" cx="' + x + '" cy="' + y + '" r="8"/>';
+      out += '<circle class="spot ' + (i < filled ? "filled" + (levels ? " h" + levels[i] : "") : "open") + '" cx="' + x + '" cy="' + y + '" r="8"/>';
     }
     return '<svg class="spots' + (kind ? " " + kind : "") + '" viewBox="0 0 68 46" role="img" aria-label="' + filled + "/" + total + '">' + out + "</svg>";
   }
@@ -167,12 +184,12 @@
 
   // A booked cell can be tapped to mark it cancelled (keyed "court@hour"); unbooked cells can't,
   // and neither can any cell when the whole day is rained out (locked).
-  function spotsCell(f, court, hour, cancelled, locked) {
+  function spotsCell(f, court, hour, cancelled, locked, levels) {
     if (f === null) return '<td class="off">–</td>';
     var key = court + "@" + hour, off = !!cancelled[key];
     return "<td" + (locked ? "" : ' data-cell="' + key + '" tabindex="0" title="แตะเพื่อยกเลิก/คืนคอร์ท"') +
       (off ? ' class="cancelled" aria-label="ยกเลิก"' : "") + ">" +
-      spotsSvg(f) + (off ? crossSvg() : "") + "</td>";
+      spotsSvg(f, "", levels) + (off ? crossSvg() : "") + "</td>";
   }
   // A สำรอง cell: 4 red-tone circles, one filled per reserve player, then a +N badge for the rest.
   function overCell(n) {
@@ -229,7 +246,7 @@
       th = courtLabels.concat(["สำรอง"]).map(function (l) { return "<th>" + l + "</th>"; }).join("");
       rows = hourLabels.map(function (l, j) {
         return '<tr><th scope="row">' + l + "</th>" +
-          g.cells.map(function (row, i) { return spotsCell(row[j], g.courts[i].court, g.hours[j], cancelled, rain); }).join("") +
+          g.cells.map(function (row, i) { return spotsCell(row[j], g.courts[i].court, g.hours[j], cancelled, rain, g.levels[i][j]); }).join("") +
           overCell(g.overflow[j]) +
           "</tr>";
       }).join("");
@@ -237,7 +254,7 @@
       th = hourLabels.map(function (l) { return "<th>" + l + "</th>"; }).join("");
       rows = courtLabels.map(function (l, i) {
         return '<tr><th scope="row">' + l + "</th>" + g.cells[i].map(function (f, j) {
-          return spotsCell(f, g.courts[i].court, g.hours[j], cancelled, rain);
+          return spotsCell(f, g.courts[i].court, g.hours[j], cancelled, rain, g.levels[i][j]);
         }).join("") + "</tr>";
       }).join("") +
         '<tr><th scope="row">สำรอง</th>' + g.overflow.map(overCell).join("") + "</tr>";
@@ -270,7 +287,7 @@
       // Over the grid, outside the scrolling wrapper so it stays centred on what is visible.
       (rain ? '<div class="rainout"><div class="rain-badge">' + rainSvg() + "งดเล่น ฝนตก</div></div>" : "") +
       "</div>" +
-      '<p class="legend">' + dot("filled") + " จองแล้ว " + dot("open") + " ว่าง " + dot("filled", true) + " สำรอง" +
+      '<p class="legend"><span class="shades">' + [1, 2, 3, 4].map(function (l) { return dot("filled h" + l); }).join("") + "</span> 1–4+ ชม. " + dot("open") + " ว่าง " + dot("filled", true) + " สำรอง" +
       (anyCancelled ? '<span class="dot cancelled">' + crossSvg("mini") + "</span> ยกเลิก" : "") + "</p>";
   }
 

@@ -6,6 +6,10 @@
   --line: #e2e7e3;
   --accent: #2f7d4f;
   --ball: #c9e14a;
+  --ball-1: #f7e52c;
+  --ball-2: #b9dd2a;
+  --ball-3: #879a12;
+  --ball-4: #174a1b;
   --court: #3f8f5f;
   --court-line: #ffffff;
   --track: #e6ebe7;
@@ -24,6 +28,10 @@
     --line: #2b332e;
     --accent: #5cc285;
     --ball: #b5cc3a;
+    --ball-1: #e8d628;
+    --ball-2: #a8cc26;
+    --ball-3: #7a8c10;
+    --ball-4: #123a15;
     --court: #2d6b47;
     --court-line: #dfe9e2;
     --track: #252c28;
@@ -42,6 +50,10 @@
   --line: #2b332e;
   --accent: #5cc285;
   --ball: #b5cc3a;
+  --ball-1: #e8d628;
+  --ball-2: #a8cc26;
+  --ball-3: #7a8c10;
+  --ball-4: #123a15;
   --court: #2d6b47;
   --court-line: #dfe9e2;
   --track: #252c28;
@@ -187,10 +199,17 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 }
 .spots { display: block; width: 68px; height: 46px; margin: 0 auto; }
 .spot.filled { fill: var(--ball); stroke: var(--court-line); stroke-width: 2; }
+/* Darker for more hours booked: 1h, 2h, 3h, 4h+. */
+.spot.filled.h1 { fill: var(--ball-1); }
+.spot.filled.h2 { fill: var(--ball-2); }
+.spot.filled.h3 { fill: var(--ball-3); }
+.spot.filled.h4 { fill: var(--ball-4); }
 .spot.open { fill: none; stroke: var(--court-line); stroke-width: 2; stroke-dasharray: 3 3; opacity: .85; }
 .legend { margin: 12px 0 0; font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .dot { width: 20px; height: 20px; background: var(--court); border-radius: 5px; }
 .legend .dot:not(:first-child) { margin-left: 8px; }
+.legend .shades { display: inline-flex; gap: 2px; }
+.legend .shades .dot { margin-left: 0; }
 .dot.reserve { background: var(--reserve-court); }
 .spots.reserve .spot.filled, .dot.reserve .spot.filled { fill: var(--reserve-ball); }
 
