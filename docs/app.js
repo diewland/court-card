@@ -125,24 +125,27 @@
       row.ranges.push(b);
     });
 
-    // levels[i][j] lists the shade step of each player seated in that cell, most hours first.
+    // levels[i][j] lists the shade step of each player seated in that cell. Each hour's
+    // seated players are sorted most hours first across all courts, then dealt out in
+    // court order, so the darkest circles lead the hour rather than each cell.
     var cells = courts.map(function () { return []; });
     var levels = courts.map(function () { return []; });
     var overflow = hours.map(function (h) {
       var here = data.players.filter(function (p) { return !p.ranges.length || anyOverlap(p.ranges, h); });
-      var n = here.length;
+      var open = courts.filter(function (c) { return anyOverlap(c.ranges, h) && !cancelled[c.court + "@" + h]; });
+      var hourLevels = here.slice(0, open.length * CAPACITY)
+        .map(function (p) { return playerLevel(p, hours.length); })
+        .sort(function (a, b) { return b - a; });
+      var k = 0;
       courts.forEach(function (c, i) {
         if (!anyOverlap(c.ranges, h)) { cells[i].push(null); levels[i].push(null); return; }
         if (cancelled[c.court + "@" + h]) { cells[i].push(0); levels[i].push([]); return; }
-        var filled = Math.min(CAPACITY, n);
-        var seated = here.slice(here.length - n, here.length - n + filled);
-        n -= filled;
+        var filled = Math.min(CAPACITY, hourLevels.length - k);
         cells[i].push(filled);
-        // Shown longest booking first: darkest circles lead the cell.
-        levels[i].push(seated.map(function (p) { return playerLevel(p, hours.length); })
-          .sort(function (a, b) { return b - a; }));
+        levels[i].push(hourLevels.slice(k, k + filled));
+        k += filled;
       });
-      return n;
+      return here.length - k;
     });
     return { hours: hours, courts: courts, cells: cells, levels: levels, overflow: overflow };
   }

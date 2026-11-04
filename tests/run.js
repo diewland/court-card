@@ -26,6 +26,12 @@ var CASES = {
     // Shade step per seated player (hours booked, 1–4+), most hours first.
     levels: { "3@17": [3, 3, 2, 2, 1], "2@18": [3, 3, 2, 2, 2, 2], "3@19": [1, 1] }
   },
+  "wednesday-levels-across-courts": {
+    day: "วันพุธ", players: 8, hours: ["18:00", "19:00"],
+    rows: { 2: [6, 6], 3: ["-", 2] }, reserve: [0, 0],
+    // Shades are sorted across the hour's courts: court 2 takes all the 2h players first.
+    levels: { "2@18": [2, 2, 2, 2, 2, 2], "2@19": [2, 2, 2, 2, 2, 2], "3@19": [1, 1] }
+  },
   "thursday-pm-suffix": {
     day: "วันพฤหัส", players: 12, hours: ["17:00", "18:00", "19:00"],
     rows: { 2: ["-", 6, 6], 3: [6, "-", 3] }, reserve: [0, 3, 0]
