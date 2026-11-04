@@ -292,13 +292,14 @@
       (seats ? pct + "%" : "–") + "</b></span>";
     return head +
       '<p class="summary"><b>' + n + "</b> คน · <b>" + g.courts.length + "</b> คอร์ท" + gauge + "</p>" +
-      '<div class="grid-area' + (rain ? " rained" : "") + '"><div class="grid-wrap"><table class="grid"><thead><tr><th></th>' + th + "</tr></thead>" +
+      // grid-block hugs the table, so the legend can end where the สำรอง block ends.
+      '<div class="grid-block"><div class="grid-area' + (rain ? " rained" : "") + '"><div class="grid-wrap"><table class="grid"><thead><tr><th></th>' + th + "</tr></thead>" +
       "<tbody>" + rows + "</tbody></table></div>" +
       // Over the grid, outside the scrolling wrapper so it stays centred on what is visible.
       (rain ? '<div class="rainout"><div class="rain-badge">' + rainSvg() + "งดเล่น ฝนตก</div></div>" : "") +
       "</div>" +
       '<p class="legend">' + dot("filled") + " จองแล้ว " + dot("open") + " ว่าง " + dot("filled", true) + " สำรอง" +
-      (anyCancelled ? '<span class="dot cancelled">' + crossSvg("mini") + "</span> ยกเลิก" : "") + "</p>";
+      (anyCancelled ? '<span class="dot cancelled">' + crossSvg("mini") + "</span> ยกเลิก" : "") + "</p></div>";
   }
 
   function renderUnknown(lines) {

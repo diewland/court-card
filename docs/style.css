@@ -210,7 +210,9 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 .spot.filled.h3 { fill: var(--ball-3); }
 .spot.filled.h4 { fill: var(--ball-4); }
 .spot.open { fill: none; stroke: var(--court-line); stroke-width: 2; stroke-dasharray: 3 3; opacity: .85; }
-.legend { margin: 12px 0 0; font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+/* Hugs the grid so the legend ends where the สำรอง block ends; padding matches the border-spacing. */
+.grid-block { width: fit-content; max-width: 100%; }
+.legend { margin: 12px 0 0; padding-right: 4px; font-size: .8rem; color: var(--muted); display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
 .dot { width: 20px; height: 20px; background: var(--court); border-radius: 5px; }
 .legend .dot:not(:first-child) { margin-left: 8px; }
 .dot.reserve { background: var(--reserve-court); }
@@ -255,6 +257,7 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 @media (max-width: 560px) {
   .card { padding: 16px 12px; }
   .grid { border-spacing: 3px; }
+  .legend { padding-right: 3px; }
   .grid td { padding: 4px; }
   .spots { width: 52px; height: 35px; }
   .cross { inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); }
