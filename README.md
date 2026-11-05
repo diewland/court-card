@@ -14,6 +14,8 @@ The card updates as you type. The **View** button switches between two layouts, 
 
 **Rain** marks the whole day called off. The card shows a งดเล่น ฝนตก ("no play, rain") banner over a dimmed grid; press it again to undo.
 
+Under each hour is the weather forecast for the courts: the temperature and a small icon (sun, cloud, rain or storm), from [Open-Meteo](https://open-meteo.com/), for the day named in the note. Tap any hour to hide or show the forecast; the page remembers the choice.
+
 **Share** turns the card into an image. On a phone it opens the share sheet so you can send it straight to the chat; on a computer it downloads the file.
 
 Everything runs in the browser, with no backend and no build step.

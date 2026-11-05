@@ -113,6 +113,10 @@ function all(re, s) {
   return out;
 }
 
+// The forecast line (temperature + icon) sits inside the hour labels; the readers look past it.
+function noTap(html) { return html.replace(/ data-wx="[^"]*" tabindex="0" role="button" aria-pressed="[^"]*" title="[^"]*"/g, ""); }
+function noWx(html) { return noTap(html).replace(/<span class="wx-line">.*?<\/svg><\/span>/g, ""); }
+
 function solid(td) { return (td.match(/spot filled/g) || []).length; }
 // People a สำรอง cell shows: solid circles plus the +N badge.
 function shown(td) { return solid(td) + +((td.match(/class="more">\+(\d+)/) || [])[1] || 0); }
@@ -123,6 +127,7 @@ function cellValues(rowHtml, read) {
 
 // Read back what the card shows, in the same shape as CASES.
 function readCard(html) {
+  html = noWx(html);
   var rows = {};
   all(/<tr><th scope="row">คอร์ท (\d+)<\/th>(.*?)<\/tr>/, html).forEach(function (m) {
     rows[m[1]] = cellValues(m[2], solid);
@@ -140,6 +145,7 @@ function readCard(html) {
 
 // Read back the court view (one column per court, one row per hour) in the same shape as CASES.
 function readCourtCard(html) {
+  html = noWx(html);
   var thead = html.match(/<thead>(.*?)<\/thead>/);
   var cols = thead ? all(/<th>([^<]+)<\/th>/, thead[1]).map(function (m) { return m[1]; }) : [];
   var hours = [], rows = {}, reserve = cols[cols.length - 1] === "สำรอง" ? [] : null;
@@ -229,6 +235,32 @@ names.forEach(function (name) {
   if (JSON.stringify(readCard(wet)) !== JSON.stringify(got)) errors.push("rain changed the time view numbers");
   if (JSON.stringify(readCourtCard(wetCourt)) !== JSON.stringify(courtGot)) errors.push("rain changed the court view numbers");
   if (/data-cell/.test(wet + wetCourt)) errors.push("rain: court cell still tappable");
+
+  // Forecast: one temperature + icon line per hour label in both views, and the same numbers. None without a forecast.
+  var wx = {};
+  for (var h = 0; h < 24; h++) wx[h] = { code: [0, 2, 3, 61, 95][h % 5], temp: 30 };
+  var sunny = out.window.renderCard(out.data, "time", exp.cancel, false, wx);
+  var sunnyCourt = out.window.renderCard(out.data, "court", exp.cancel, false, wx);
+  var line = '\\d\\d:00<span class="wx-line"><span class="wx-temp">30°</span><svg class="wx"';
+  var labelled = new RegExp("<th>" + line, "g"), rowLabelled = new RegExp('<th scope="row">' + line, "g");
+  if ((noTap(sunny).match(labelled) || []).length !== exp.hours.length) errors.push("forecast: time view hours without an icon");
+  if ((noTap(sunnyCourt).match(rowLabelled) || []).length !== exp.hours.length) errors.push("forecast: court view hours without an icon");
+  if (JSON.stringify(readCard(sunny)) !== JSON.stringify(got)) errors.push("forecast changed the time view numbers");
+  if (JSON.stringify(readCourtCard(sunnyCourt)) !== JSON.stringify(courtGot)) errors.push("forecast changed the court view numbers");
+  if (/class="wx/.test(out.card + out.courtCard)) errors.push("forecast shown without a forecast");
+  if (/data-wx/.test(out.card + out.courtCard)) errors.push("hour labels tappable without a forecast");
+  [sunny, sunnyCourt].forEach(function (html) {
+    if ((html.match(/<th[^>]* data-wx="\d+"[^>]*aria-pressed="true"/g) || []).length !== exp.hours.length) errors.push("forecast: not every hour label is tappable");
+  });
+  // Hidden: plain hour labels that can still be tapped, and the same numbers.
+  var hid = out.window.renderCard(out.data, "time", exp.cancel, false, wx, true);
+  var hidCourt = out.window.renderCard(out.data, "court", exp.cancel, false, wx, true);
+  if (/wx-line/.test(hid + hidCourt)) errors.push("forecast hidden but still shown");
+  if (((hid + hidCourt).match(/<th[^>]* data-wx="\d+"[^>]*aria-pressed="false"/g) || []).length !== 2 * exp.hours.length) errors.push("hidden forecast: hour labels not tappable");
+  if (JSON.stringify(readCard(hid)) !== JSON.stringify(got)) errors.push("hiding the forecast changed the time view numbers");
+  if (JSON.stringify(readCourtCard(hidCourt)) !== JSON.stringify(courtGot)) errors.push("hiding the forecast changed the court view numbers");
+  var noTemp = out.window.renderCard(out.data, "time", exp.cancel, false, Object.keys(wx).reduce(function (o, k) { o[k] = { code: 3 }; return o; }, {}));
+  if (/wx-temp/.test(noTemp) || (noTemp.match(/<svg class="wx"/g) || []).length !== exp.hours.length) errors.push("forecast without a temperature: expected the icon alone");
 
   if (/class="off"[^>]*data-cell|data-cell[^>]*class="off"/.test(out.card + out.courtCard)) errors.push("unbooked cell is tappable");
 

@@ -18,6 +18,9 @@
   --cancel: #d93025;
   --rain: #2b6cb0;
   --rain-bg: #e6f0fa;
+  --wx-sun: #f2a516;
+  --wx-cloud: #9aa6b2;
+  --wx-rain: #2b6cb0;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -40,6 +43,9 @@
     --cancel: #ff6b5b;
     --rain: #7fb3ef;
     --rain-bg: #1b2a3a;
+    --wx-sun: #f5c04a;
+    --wx-cloud: #a9b4bf;
+    --wx-rain: #7fb3ef;
   }
 }
 :root[data-theme="dark"] {
@@ -62,6 +68,9 @@
   --cancel: #ff6b5b;
   --rain: #7fb3ef;
   --rain-bg: #1b2a3a;
+  --wx-sun: #f5c04a;
+  --wx-cloud: #a9b4bf;
+  --wx-rain: #7fb3ef;
 }
 
 * { box-sizing: border-box; }
@@ -250,6 +259,17 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
 .rain-icon path { fill: var(--rain); }
 .rain-icon line { stroke: var(--rain); stroke-width: 2; stroke-linecap: round; }
 
+/* Forecast line under an hour label: temperature, then an icon. */
+.wx-line { display: flex; align-items: center; gap: 3px; white-space: nowrap; font-size: .7rem; font-weight: 500; color: var(--muted); }
+.grid thead .wx-line { justify-content: center; }
+.grid th[data-wx] { cursor: pointer; -webkit-user-select: none; user-select: none; }
+.wx { width: 16px; height: 16px; flex: none; }
+.wx .sun { fill: var(--wx-sun); }
+.wx .ray { stroke: var(--wx-sun); stroke-width: 2; stroke-linecap: round; }
+.wx .cloud { fill: var(--wx-cloud); }
+.wx .drop { stroke: var(--wx-rain); stroke-width: 2; stroke-linecap: round; }
+.wx .bolt { fill: none; stroke: var(--wx-sun); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
 .unknown { margin-top: 12px; font-size: .8rem; color: var(--muted); }
 .unknown ul { margin: 4px 0 0; padding-left: 18px; }
 .empty { color: var(--muted); margin: 0; }
@@ -264,4 +284,6 @@ button.secondary { background: var(--surface); color: var(--fg); border: 1px sol
   .grid-area.rained { min-height: 110px; }
   .rain-badge { font-size: 1.4rem; padding: 10px 18px; }
   .rain-icon { width: 36px; height: 36px; }
+  .wx-line { font-size: .65rem; }
+  .wx { width: 12px; height: 12px; }
 }

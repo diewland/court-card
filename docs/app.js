@@ -207,6 +207,35 @@
     }) + " น.";
   }
 
+  // A forecast line under an hour label: temperature, then a small icon. w is {code, temp} from
+  // Open-Meteo (WMO weather code, °C); h picks a moon over the sun after dark. No forecast, no line.
+  var CLOUD = '<path class="cloud" d="M7 15a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 7.5a3.75 3.75 0 0 1 0 7.5z"/>';
+  function wxSvg(w, h) {
+    if (!w || w.code == null) return "";
+    var c = w.code, night = h >= 18 || h < 6, kind, body;
+    var sky = night ? '<path class="sun" d="M14 3a8 8 0 1 0 7 11.5A6.5 6.5 0 0 1 14 3z"/>' :
+      '<circle class="sun" cx="12" cy="12" r="4.5"/>' + [0, 45, 90, 135, 180, 225, 270, 315].map(function (a) {
+        var r = a * Math.PI / 180, x = Math.cos(r), y = Math.sin(r);
+        return '<line class="ray" x1="' + (12 + 7 * x).toFixed(1) + '" y1="' + (12 + 7 * y).toFixed(1) +
+          '" x2="' + (12 + 9.5 * x).toFixed(1) + '" y2="' + (12 + 9.5 * y).toFixed(1) + '"/>';
+      }).join("");
+    if (c <= 1) { kind = "ท้องฟ้าแจ่มใส"; body = sky; }
+    else if (c === 2) {
+      kind = "มีเมฆบางส่วน";
+      body = '<g transform="translate(-1.5 -1.5) scale(.7)">' + sky + '</g><g transform="translate(3 7) scale(.85)">' + CLOUD + "</g>";
+    }
+    else if (c >= 95) { kind = "พายุฝนฟ้าคะนอง"; body = CLOUD + '<path class="bolt" d="M13 15l-2.5 4h3l-2 4"/>'; }
+    else if ((c >= 51 && c <= 67) || (c >= 80 && c <= 82)) {
+      kind = "ฝนตก";
+      body = CLOUD + '<line class="drop" x1="8" y1="18" x2="7" y2="21"/><line class="drop" x1="12" y1="18" x2="11" y2="21"/>' +
+        '<line class="drop" x1="16" y1="18" x2="15" y2="21"/>';
+    }
+    else { kind = "เมฆมาก"; body = '<g transform="translate(0 3)">' + CLOUD + "</g>"; }
+    var hasTemp = w.temp != null, tip = kind + (hasTemp ? " · " + w.temp + "°C" : "");
+    return '<span class="wx-line">' + (hasTemp ? '<span class="wx-temp">' + w.temp + "°</span>" : "") +
+      '<svg class="wx" viewBox="0 0 24 24" role="img" aria-label="' + tip + '"><title>' + tip + "</title>" + body + "</svg></span>";
+  }
+
   // Explorer-style icon switch. Each icon is a 3×3 mini card: green court cells, with the red
   // สำรอง line where that view puts it (last column in Court view, last row in Time view).
   function viewIcon(v) {
@@ -233,7 +262,9 @@
   // cancelled marks court cells as cancelled, e.g. {"3@19": true}: drawn grey under a red X,
   // and their players move to the other courts booked that hour, then to สำรอง.
   // rain marks the whole day called off: a งดเล่น ฝนตก badge over a dimmed grid that can't be tapped.
-  function renderCard(data, view, cancelled, rain) {
+  // wx is the forecast per hour, {18: {code, temp}}: a temperature + icon line under each hour label.
+  // With a forecast, the hour labels can be tapped to hide/show it; hideWx hides it.
+  function renderCard(data, view, cancelled, rain, wx, hideWx) {
     cancelled = cancelled || {};
     var g = buildGrid(data, cancelled);
     var head = '<div class="card-head"><div class="ball" aria-hidden="true"></div><div>' +
@@ -242,19 +273,27 @@
       "</div>" + (g ? viewSwitch(view) : "") + "</div>";
     if (!g) return head + '<p class="empty">ยังไม่มีคอร์ท</p>';
 
-    var hourLabels = g.hours.map(function (h) { return fmt({ h: h, m: 0 }); });
+    wx = wx || {};
+    var hasWx = g.hours.some(function (h) { return wx[h] && wx[h].code != null; });
+    function hourTh(j, row) {
+      var h = g.hours[j];
+      return "<th" + (row ? ' scope="row"' : "") +
+        (hasWx ? ' data-wx="' + h + '" tabindex="0" role="button" aria-pressed="' + !hideWx +
+          '" title="แตะเพื่อซ่อน/แสดงพยากรณ์อากาศ"' : "") + ">" +
+        fmt({ h: h, m: 0 }) + (hideWx ? "" : wxSvg(wx[h], h)) + "</th>";
+    }
     var courtLabels = g.courts.map(function (c) { return "คอร์ท " + c.court; });
     var th, rows;
     if (view === "court") {
       th = courtLabels.concat(["สำรอง"]).map(function (l) { return "<th>" + l + "</th>"; }).join("");
-      rows = hourLabels.map(function (l, j) {
-        return '<tr><th scope="row">' + l + "</th>" +
+      rows = g.hours.map(function (h, j) {
+        return "<tr>" + hourTh(j, true) +
           g.cells.map(function (row, i) { return spotsCell(row[j], g.courts[i].court, g.hours[j], cancelled, rain, g.levels[i][j]); }).join("") +
           overCell(g.overflow[j]) +
           "</tr>";
       }).join("");
     } else {
-      th = hourLabels.map(function (l) { return "<th>" + l + "</th>"; }).join("");
+      th = g.hours.map(function (h, j) { return hourTh(j); }).join("");
       rows = courtLabels.map(function (l, i) {
         return '<tr><th scope="row">' + l + "</th>" + g.cells[i].map(function (f, j) {
           return spotsCell(f, g.courts[i].court, g.hours[j], cancelled, rain, g.levels[i][j]);
@@ -321,12 +360,48 @@
   var view = "court";
   var cancelled = {};
   var rain = false;
+  var showWx = true;
   var timer;
   try { if (VIEWS[localStorage.getItem("pa-view")]) view = localStorage.getItem("pa-view"); } catch (e) {}
+  try { showWx = localStorage.getItem("pa-wx") !== "0"; } catch (e) {}
+
+  // Hourly forecast for the courts at Wachirabenchathat Park, from Open-Meteo (free, no key).
+  // Keyed "2026-11-05T18" in Bangkok time. If the fetch fails, the card just has no icons.
+  var WX_URL = "https://api.open-meteo.com/v1/forecast?latitude=13.8145&longitude=100.557" +
+    "&hourly=weather_code,temperature_2m&timezone=Asia%2FBangkok&forecast_days=8";
+  var forecast = {}, forecastAt = 0;
+  function loadWeather() {
+    if (typeof fetch !== "function" || Date.now() - forecastAt < 3600e3) return;
+    forecastAt = Date.now();
+    fetch(WX_URL).then(function (r) { return r.json(); }).then(function (j) {
+      var hr = j.hourly, f = {};
+      hr.time.forEach(function (t, i) {
+        f[t.slice(0, 13)] = { code: hr.weather_code[i], temp: hr.temperature_2m[i] == null ? null : Math.round(hr.temperature_2m[i]) };
+      });
+      forecast = f;
+      update();
+    }).catch(function () { forecastAt = 0; });
+  }
+  // The day the note is for: today if its day name is today (or it has none), otherwise the
+  // next date with that day name. In Bangkok time, "2026-11-05".
+  var WEEKDAY = { "อาทิตย์": 0, "จันทร์": 1, "อังคาร": 2, "พุธ": 3, "พฤหัส": 4, "พฤหัสบดี": 4, "ศุกร์": 5, "เสาร์": 6 };
+  function playDate(day) {
+    var d = new Date(Date.now() + 7 * 3600e3), want = WEEKDAY[(day || "").replace(/^วัน/, "")];
+    if (want != null) d.setUTCDate(d.getUTCDate() + (want - d.getUTCDay() + 7) % 7);
+    return d.toISOString().slice(0, 10);
+  }
+  function hourlyWx(data) {
+    var date = playDate(data.day), wx = {};
+    for (var h = 0; h < 24; h++) {
+      var w = forecast[date + "T" + String(h).padStart(2, "0")];
+      if (w) wx[h] = w;
+    }
+    return wx;
+  }
 
   function update() {
     var data = parseNote(note.value);
-    card.innerHTML = renderCard(data, view, cancelled, rain);
+    card.innerHTML = renderCard(data, view, cancelled, rain, hourlyWx(data), !showWx);
     save.disabled = !data.courts.length;
     rainBtn.disabled = !data.courts.length;
     clear.disabled = !note.value;
@@ -379,6 +454,24 @@
   card.addEventListener("click", toggleCell);
   card.addEventListener("keydown", toggleCell);
 
+  // Tap (or Enter/Space on) any hour label to hide/show the forecast under every hour.
+  function toggleWx(e) {
+    var th = e.target.closest && e.target.closest("th[data-wx]");
+    if (!th) return;
+    if (e.type === "keydown") {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+    }
+    var hour = th.getAttribute("data-wx");
+    showWx = !showWx;
+    try { localStorage.setItem("pa-wx", showWx ? "1" : "0"); } catch (err) {}
+    update();
+    var again = card.querySelector('th[data-wx="' + hour + '"]');
+    if (again && e.type === "keydown") again.focus();
+  }
+  card.addEventListener("click", toggleWx);
+  card.addEventListener("keydown", toggleWx);
+
   function pngName() {
     var d = new Date();
     function p(n) { return String(n).padStart(2, "0"); }
@@ -411,7 +504,7 @@
   }
 
   // html-to-image drops CSS paint on SVG shapes, so inline the computed values while capturing.
-  var PAINT = ["fill", "stroke", "stroke-width", "stroke-dasharray", "stroke-linecap", "opacity"];
+  var PAINT = ["fill", "stroke", "stroke-width", "stroke-dasharray", "stroke-linecap", "stroke-linejoin", "opacity"];
   function inlinePaint(on) {
     [].forEach.call(card.querySelectorAll("circle, line, path"), function (c) {
       var cs = on && getComputedStyle(c);
@@ -448,9 +541,10 @@
   // Browsers can put the note back (tab restore, back/forward) without an input event.
   window.addEventListener("pageshow", update);
   document.addEventListener("visibilitychange", function () {
-    if (!document.hidden) update();
+    if (!document.hidden) { update(); loadWeather(); }
   });
   update();
+  loadWeather();
 
   window.parseNote = parseNote;
   window.buildGrid = buildGrid;
