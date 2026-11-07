@@ -238,7 +238,7 @@ names.forEach(function (name) {
 
   // Forecast: one temperature + icon line per hour label in both views, and the same numbers. None without a forecast.
   var wx = {};
-  for (var h = 0; h < 24; h++) wx[h] = { code: [0, 2, 3, 61, 95][h % 5], temp: 30 };
+  for (var h = 0; h < 24; h++) wx[h] = { code: [1, 2, 3, 5, 8][h % 5], temp: 30 };
   var sunny = out.window.renderCard(out.data, "time", exp.cancel, false, wx);
   var sunnyCourt = out.window.renderCard(out.data, "court", exp.cancel, false, wx);
   var line = '\\d\\d:00<span class="wx-line"><span class="wx-temp">30°</span><svg class="wx"';

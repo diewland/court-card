@@ -14,7 +14,7 @@ The card updates as you type. The **View** button switches between two layouts, 
 
 **Rain** marks the whole day called off. The card shows a งดเล่น ฝนตก ("no play, rain") banner over a dimmed grid; press it again to undo.
 
-Under each hour is the weather forecast for the courts: the temperature and a small icon (sun, cloud, rain or storm), from [Open-Meteo](https://open-meteo.com/), for the day named in the note. Tap any hour to hide or show the forecast; the page remembers the choice.
+Under each hour is the weather forecast for the courts: the temperature and a small icon (sun, cloud, rain or storm), from the [Thai Meteorological Department](https://data.tmd.go.th/nwpapi/), for the day named in the note. TMD forecasts only today through 2 days ahead, so a note further out has no forecast. Tap any hour to hide or show the forecast; the page remembers the choice.
 
 **Share** turns the card into an image. On a phone it opens the share sheet so you can send it straight to the chat; on a computer it downloads the file.
 
@@ -50,6 +50,8 @@ Everything runs in the browser, with no backend and no build step.
 
 The site lives in `docs/` (`index.html`, `app.js`, `style.css`) and is served by GitHub Pages: Settings → Pages → Deploy from a branch → `master`, folder `/docs`.
 
+The forecast comes through a small PHP proxy, `server/tmd.php`, because TMD needs a secret token and its CORS headers block browsers. To host it, copy `server/tmd-config.sample.php` to `tmd-config.php`, paste your TMD NWP API token, upload both files to one folder on an HTTPS PHP server (with curl), and set `WX_URL` in `docs/app.js` to the script's URL (now `https://diewland.com/apis/tmd/`). `tmd-config.php` is gitignored; never commit it. The script sends no `Access-Control-Allow-Origin` header of its own, because diewland.com already adds `*` and browsers reject two values; on a host that doesn't, uncomment the line in `tmd.php`. It caches the forecast for 2 hours to stay inside TMD's datapoint quota.
+
 Run it locally:
 
 ```sh
@@ -65,3 +67,7 @@ node tests/run.js sunday-court-continuation    # one case
 ```
 
 See [CLAUDE.md](CLAUDE.md) for the parsing and grid rules.
+
+## Weather data
+
+The forecast is from the Thai Meteorological Department (กรมอุตุนิยมวิทยา) [NWP API](https://data.tmd.go.th/nwpapi/): the hourly temperature (`tc`) and weather condition (`cond`) at the courts, Wachirabenchathat Park, Bangkok (13.8145, 100.557).

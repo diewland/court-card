@@ -207,8 +207,10 @@
     }) + " น.";
   }
 
-  // A forecast line under an hour label: temperature, then a small icon. w is {code, temp} from
-  // Open-Meteo (WMO weather code, °C); h picks a moon over the sun after dark. No forecast, no line.
+  // A forecast line under an hour label: temperature, then a small icon. w is {code, temp}: TMD's
+  // cond (1 clear, 2 partly cloudy, 3 mostly cloudy, 4 overcast, 5–7 light/moderate/heavy rain,
+  // 8 thunderstorm, 9–12 very cold/cold/cool/very hot, all clear skies) and °C; h picks a moon over
+  // the sun after dark. No forecast, no line.
   var CLOUD = '<path class="cloud" d="M7 15a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 7.5a3.75 3.75 0 0 1 0 7.5z"/>';
   function wxSvg(w, h) {
     if (!w || w.code == null) return "";
@@ -219,13 +221,13 @@
         return '<line class="ray" x1="' + (12 + 7 * x).toFixed(1) + '" y1="' + (12 + 7 * y).toFixed(1) +
           '" x2="' + (12 + 9.5 * x).toFixed(1) + '" y2="' + (12 + 9.5 * y).toFixed(1) + '"/>';
       }).join("");
-    if (c <= 1) { kind = "ท้องฟ้าแจ่มใส"; body = sky; }
+    if (c === 1 || c >= 9) { kind = "ท้องฟ้าแจ่มใส"; body = sky; }
     else if (c === 2) {
       kind = "มีเมฆบางส่วน";
       body = '<g transform="translate(-1.5 -1.5) scale(.7)">' + sky + '</g><g transform="translate(3 7) scale(.85)">' + CLOUD + "</g>";
     }
-    else if (c >= 95) { kind = "พายุฝนฟ้าคะนอง"; body = CLOUD + '<path class="bolt" d="M13 15l-2.5 4h3l-2 4"/>'; }
-    else if ((c >= 51 && c <= 67) || (c >= 80 && c <= 82)) {
+    else if (c === 8) { kind = "พายุฝนฟ้าคะนอง"; body = CLOUD + '<path class="bolt" d="M13 15l-2.5 4h3l-2 4"/>'; }
+    else if (c >= 5 && c <= 7) {
       kind = "ฝนตก";
       body = CLOUD + '<line class="drop" x1="8" y1="18" x2="7" y2="21"/><line class="drop" x1="12" y1="18" x2="11" y2="21"/>' +
         '<line class="drop" x1="16" y1="18" x2="15" y2="21"/>';
@@ -365,18 +367,19 @@
   try { if (VIEWS[localStorage.getItem("pa-view")]) view = localStorage.getItem("pa-view"); } catch (e) {}
   try { showWx = localStorage.getItem("pa-wx") !== "0"; } catch (e) {}
 
-  // Hourly forecast for the courts at Wachirabenchathat Park, from Open-Meteo (free, no key).
-  // Keyed "2026-11-05T18" in Bangkok time. If the fetch fails, the card just has no icons.
-  var WX_URL = "https://api.open-meteo.com/v1/forecast?latitude=13.8145&longitude=100.557" +
-    "&hourly=weather_code,temperature_2m&timezone=Asia%2FBangkok&forecast_days=8";
+  // Hourly forecast for the courts at Wachirabenchathat Park, from the Thai Meteorological
+  // Department's NWP API through our PHP proxy (server/tmd.php, which holds the token). It covers
+  // today through today+2. Keyed "2026-11-05T18" in Bangkok time. If the fetch fails, the card
+  // just has no icons.
+  var WX_URL = "https://diewland.com/apis/tmd/";
   var forecast = {}, forecastAt = 0;
   function loadWeather() {
     if (typeof fetch !== "function" || Date.now() - forecastAt < 3600e3) return;
     forecastAt = Date.now();
     fetch(WX_URL).then(function (r) { return r.json(); }).then(function (j) {
-      var hr = j.hourly, f = {};
-      hr.time.forEach(function (t, i) {
-        f[t.slice(0, 13)] = { code: hr.weather_code[i], temp: hr.temperature_2m[i] == null ? null : Math.round(hr.temperature_2m[i]) };
+      var f = {};
+      j.time.forEach(function (t, i) {
+        f[t] = { code: j.cond[i], temp: j.temp[i] == null ? null : Math.round(j.temp[i]) };
       });
       forecast = f;
       update();
