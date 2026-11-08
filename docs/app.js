@@ -469,6 +469,7 @@
     showWx = !showWx;
     try { localStorage.setItem("pa-wx", showWx ? "1" : "0"); } catch (err) {}
     update();
+    loadWeather(); // a card left open never changes visibility; refresh here too (1-hour gate)
     var again = card.querySelector('th[data-wx="' + hour + '"]');
     if (again && e.type === "keydown") again.focus();
   }
