@@ -366,6 +366,8 @@
   var unknown = document.getElementById("unknown");
   var save = document.getElementById("save");
   var clear = document.getElementById("clear");
+  var clearNote = document.getElementById("clear-note");
+  var clearReserve = document.getElementById("clear-reserve");
   var rainBtn = document.getElementById("rain");
   var VIEWS = { time: "Time", court: "Court" };
   var view = "court";
@@ -417,6 +419,7 @@
     save.disabled = !data.courts.length;
     rainBtn.disabled = !data.courts.length;
     clear.disabled = !note.value && !reserve.value;
+    showClearX();
     unknown.innerHTML = renderUnknown(data.unknown);
   }
 
@@ -447,6 +450,28 @@
     setRain(false);
     update();
     note.focus();
+  });
+
+  // The × in each box's corner clears that box only, and shows only while it has text.
+  function showClearX() {
+    clearNote.hidden = !note.value;
+    clearReserve.hidden = !reserve.value;
+  }
+  // Clearing the note also drops cancelled cells and the rain-out, which belonged to it.
+  clearNote.addEventListener("click", function () {
+    clearTimeout(timer);
+    note.value = "";
+    cancelled = {};
+    setRain(false);
+    update();
+    note.focus();
+  });
+  // The courts come from the note, so clearing the reserve list keeps them as they are.
+  clearReserve.addEventListener("click", function () {
+    clearTimeout(timer);
+    reserve.value = "";
+    update();
+    reserve.focus();
   });
 
   // Tap (or Enter/Space on) a booked court cell to toggle it cancelled.
@@ -549,6 +574,7 @@
       .then(function () { done(); }, done);
   });
   function scheduleUpdate() {
+    showClearX();
     clearTimeout(timer);
     timer = setTimeout(update, 250);
   }

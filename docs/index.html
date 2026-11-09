@@ -31,8 +31,14 @@
         <h1>Court Card</h1>
       </header>
       <div class="notes">
-        <textarea id="note" spellcheck="false" rows="15" placeholder="วางโน้ตลงชื่อประจำวัน" aria-label="โน้ตลงชื่อ"></textarea>
-        <textarea id="reserve" spellcheck="false" rows="3" placeholder="วางรายชื่อสำรอง (ถ้ามี)" aria-label="รายชื่อสำรอง"></textarea>
+        <div class="field">
+          <textarea id="note" spellcheck="false" rows="15" placeholder="วางโน้ตลงชื่อประจำวัน" aria-label="โน้ตลงชื่อ"></textarea>
+          <button id="clear-note" type="button" class="x" aria-label="ล้างโน้ต" title="ล้าง" hidden><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg></button>
+        </div>
+        <div class="field">
+          <textarea id="reserve" spellcheck="false" rows="3" placeholder="วางรายชื่อสำรอง (ถ้ามี)" aria-label="รายชื่อสำรอง"></textarea>
+          <button id="clear-reserve" type="button" class="x" aria-label="ล้างรายชื่อสำรอง" title="ล้าง" hidden><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg></button>
+        </div>
       </div>
       <div class="actions">
         <button id="clear" type="button" class="secondary">Clear</button>

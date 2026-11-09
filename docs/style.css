@@ -118,6 +118,19 @@ textarea {
 }
 textarea::placeholder { color: var(--muted); }
 .notes { display: grid; gap: 8px; }
+/* The × in each textarea's top-right corner clears that box. */
+.field { position: relative; }
+.field textarea { display: block; padding-right: 40px; }
+button.x {
+  position: absolute; top: 8px; right: 8px;
+  width: 26px; height: 26px; padding: 0; line-height: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 50%;
+  background: var(--surface); color: var(--muted);
+}
+button.x:hover { color: var(--fg); }
+button.x[hidden] { display: none; }
+button.x svg { stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 button {
   font: inherit;
   font-weight: 600;
