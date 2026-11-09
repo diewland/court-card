@@ -10,6 +10,7 @@ var APP = fs.readFileSync(path.join(__dirname, "../docs/app.js"), "utf8");
 // Expected card per note. Rows are keyed by court number, one value per hour column:
 // a number is the count of solid circles, "-" is an hour the court isn't booked.
 // reserve is the สำรอง row: people shown per hour (solid circles plus the +N badge).
+// reserve-note (optional) names a note file pasted into the reserve box; it's read after the main note.
 // levels (optional) maps "court@hour" to the shade step of each solid circle in that cell.
 var CASES = {
   "friday-basic": {
@@ -73,6 +74,18 @@ var CASES = {
     day: "วันพฤหัส", players: 13, hours: ["18:00", "19:00"],
     rows: { 2: [6, 6], 3: ["-", 6], 4: [6, "-"] }, reserve: [0, 0]
   },
+  // Some lines have no running number; Grace's second hour is on the next line.
+  // 18:00 has 8 (all but สำรอง), 19:00 has 9.
+  "friday-no-number": {
+    day: "วันศุกร์", players: 9, hours: ["18:00", "19:00"],
+    rows: { 2: [6, 6], 3: [2, 3] }, reserve: [0, 0]
+  },
+  // friday-basic plus a reserve box: 18:00 has 9 + 2 = 11, 19:00 has 10 + 4 = 14 for 12 seats.
+  "friday-reserve-list": {
+    note: "friday-basic", "reserve-note": "friday-reserve-list",
+    day: "วันศุกร์", players: 14, hours: ["18:00", "19:00"],
+    rows: { 2: [6, 6], 3: [5, 6] }, reserve: [0, 2]
+  },
   // Court 2 cancelled at 19:00: its 6 players fill court 3 (which had 2), and 2 go to สำรอง.
   "thursday-split-court-cancel": {
     note: "thursday-split-court", cancel: { "2@19": true },
@@ -87,16 +100,18 @@ var CASES = {
   }
 };
 
-function render(note) {
+function render(main, reserveNote) {
   var els = {};
   var document = {
     getElementById: function (id) {
-      return els[id] || (els[id] = { value: note, innerHTML: "", addEventListener: function () {} });
+      var value = id === "note" ? main : id === "reserve" ? reserveNote || "" : "";
+      return els[id] || (els[id] = { value: value, innerHTML: "", addEventListener: function () {} });
     },
     addEventListener: function () {}
   };
   var window = { addEventListener: function () {} };
   vm.runInNewContext(APP, { document: document, window: window, setTimeout: setTimeout, clearTimeout: clearTimeout });
+  var note = window.combineNotes(main, reserveNote || "");
   return {
     card: window.renderCard(window.parseNote(note), "time"),
     courtCard: els.card.innerHTML,
@@ -169,7 +184,8 @@ var failed = 0;
 names.forEach(function (name) {
   if (!CASES[name]) { console.log("?    " + name + ": no such case"); failed++; return; }
   var exp = CASES[name];
-  var out = render(fs.readFileSync(path.join(__dirname, "notes", (exp.note || name) + ".txt"), "utf8"));
+  function read(f) { return fs.readFileSync(path.join(__dirname, "notes", f + ".txt"), "utf8"); }
+  var out = render(read(exp.note || name), exp["reserve-note"] && read(exp["reserve-note"]));
   // A case with "cancel" renders its note with those court cells cancelled.
   if (exp.cancel) {
     out.card = out.window.renderCard(out.data, "time", exp.cancel);

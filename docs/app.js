@@ -16,6 +16,11 @@
   var START_RE = /^ลงชื่อสมาชิกเล่น/;
   var DAY_RE = /วัน(จันทร์|อังคาร|พุธ|พฤหัสบดี|พฤหัส|ศุกร์|เสาร์|อาทิตย์)/;
 
+  // The reserve list is pasted in its own box; it is read as more lines after the main note.
+  function combineNotes(main, reserve) {
+    return reserve && reserve.trim() ? main + "\n" + reserve : main;
+  }
+
   function hm(h, m) { return { h: +h, m: +(m || 0) }; }
   function toMin(t) { return t.h * 60 + t.m; }
   function fmt(t) { return String(t.h).padStart(2, "0") + ":" + String(t.m).padStart(2, "0"); }
@@ -61,17 +66,20 @@
         return;
       }
       // "<slot> <name> <range>[,<range>...] <free text>". The name ends where the first range starts.
-      var p = line.match(PLAYER_RE);
-      if (p) {
-        var rs = ranges(p[2]);
-        var name = (rs.length ? p[2].slice(0, rs[0].index) : p[2]).trim();
+      function addPlayer(slotNo, rest) {
+        var rs = ranges(rest);
+        var name = (rs.length ? rest.slice(0, rs[0].index) : rest).trim();
         if (CANCELLED_RE.test(name)) name = "";
-        var slot = { slot: +p[1], name: name, ranges: rs };
+        var slot = { slot: slotNo, name: name, ranges: rs };
         (name ? data.players : data.openSlots).push(slot);
         lastPlayer = name ? slot : null;
         lastCourt = null;
-        return;
       }
+      var p = line.match(PLAYER_RE);
+      if (p) return addPlayer(+p[1], p[2]);
+      // Members sometimes leave out the running number ("Kim 18.00-19.00"). Any other line with
+      // a time range is a player, unless it's a title line (sign-up header or a day name).
+      if (ranges(line).length && !START_RE.test(line) && !DAY_RE.test(line)) return addPlayer(null, line);
       if (!data.title) {
         data.title = line;
         var d = line.match(DAY_RE);
@@ -353,6 +361,7 @@
   }
 
   var note = document.getElementById("note");
+  var reserve = document.getElementById("reserve");
   var card = document.getElementById("card");
   var unknown = document.getElementById("unknown");
   var save = document.getElementById("save");
@@ -403,11 +412,11 @@
   }
 
   function update() {
-    var data = parseNote(note.value);
+    var data = parseNote(combineNotes(note.value, reserve.value));
     card.innerHTML = renderCard(data, view, cancelled, rain, hourlyWx(data), !showWx);
     save.disabled = !data.courts.length;
     rainBtn.disabled = !data.courts.length;
-    clear.disabled = !note.value;
+    clear.disabled = !note.value && !reserve.value;
     unknown.innerHTML = renderUnknown(data.unknown);
   }
 
@@ -433,6 +442,7 @@
   clear.addEventListener("click", function () {
     clearTimeout(timer);
     note.value = "";
+    reserve.value = "";
     cancelled = {};
     setRain(false);
     update();
@@ -538,10 +548,12 @@
       .then(function (blob) { card.classList.remove("capture"); inlinePaint(false); return deliver(blob); })
       .then(function () { done(); }, done);
   });
-  note.addEventListener("input", function () {
+  function scheduleUpdate() {
     clearTimeout(timer);
     timer = setTimeout(update, 250);
-  });
+  }
+  note.addEventListener("input", scheduleUpdate);
+  reserve.addEventListener("input", scheduleUpdate);
   // Browsers can put the note back (tab restore, back/forward) without an input event.
   window.addEventListener("pageshow", update);
   document.addEventListener("visibilitychange", function () {
@@ -550,6 +562,7 @@
   update();
   loadWeather();
 
+  window.combineNotes = combineNotes;
   window.parseNote = parseNote;
   window.buildGrid = buildGrid;
   window.renderCard = renderCard;

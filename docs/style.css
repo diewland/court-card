@@ -98,7 +98,7 @@ body {
   .layout { grid-template-rows: auto auto auto 1fr; row-gap: 0; }
   .input { display: contents; }
   .intro { grid-area: 1 / 1; }
-  #note { grid-area: 2 / 1; }
+  .notes { grid-area: 2 / 1; }
   .actions { grid-area: 3 / 1; }
   .output { grid-column: 2; grid-row: 2 / -1; }
 }
@@ -117,6 +117,7 @@ textarea {
   resize: vertical;
 }
 textarea::placeholder { color: var(--muted); }
+.notes { display: grid; gap: 8px; }
 button {
   font: inherit;
   font-weight: 600;

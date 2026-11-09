@@ -30,7 +30,10 @@
       <header class="intro">
         <h1>Court Card</h1>
       </header>
-      <textarea id="note" spellcheck="false" rows="18" placeholder="วางโน้ตลงชื่อประจำวัน"></textarea>
+      <div class="notes">
+        <textarea id="note" spellcheck="false" rows="15" placeholder="วางโน้ตลงชื่อประจำวัน" aria-label="โน้ตลงชื่อ"></textarea>
+        <textarea id="reserve" spellcheck="false" rows="3" placeholder="วางรายชื่อสำรอง (ถ้ามี)" aria-label="รายชื่อสำรอง"></textarea>
+      </div>
       <div class="actions">
         <button id="clear" type="button" class="secondary">Clear</button>
         <button id="rain" type="button" class="secondary" aria-pressed="false" title="งดเล่นเพราะฝนตก">Rain</button>

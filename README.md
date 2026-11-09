@@ -41,8 +41,10 @@ Everything runs in the browser, with no backend and no build step.
 **รอบ17.00 เล่น 4 ออก 4          ← lines starting with ** are comments
 ```
 
+- If the reserve list comes as a separate message, paste it into the small box under the note (วางรายชื่อสำรอง). It's read as more lines of the same note, so the same format applies.
 - Anything above the `ลงชื่อสมาชิกเล่น` line is ignored, so it's fine to paste extra chat along with the note.
 - Times can be written `17.00`, `17:00` or `17`.
+- The running number in front of a name can be left out (`Kim 18.00-19.00`).
 - Players fill the courts booked in each hour in court-number order, 6 per court. A player is counted only in the hours they signed up for.
 - Any line that can't be read is listed under the card, so a change in the note's format shows up there.
 
